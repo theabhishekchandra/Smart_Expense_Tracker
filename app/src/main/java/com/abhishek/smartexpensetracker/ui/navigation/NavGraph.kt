@@ -50,8 +50,9 @@ fun NavGraph(repository: ExpenseRepository) {
             )
         }
         composable(REPORT) {
+            val last7DaysExpenses by viewModel.last7DaysExpenses.collectAsState()
             ReportScreen(
-                expenses = uiState.expenses,
+                last7DaysExpenses = last7DaysExpenses,
                 onBack = { navController.popBackStack() }
             )
         }

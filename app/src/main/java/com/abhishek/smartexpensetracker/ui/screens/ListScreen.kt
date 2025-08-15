@@ -152,7 +152,7 @@ fun ExpenseCard(expense: Expense, onDelete: (Expense) -> Unit) {
             Column {
                 Text(expense.title, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    "${expense.category} • ${SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(expense.timestamp))}",
+                    "${expense.category} • ${SimpleDateFormat("dd:MM:yyyy : hh:mm a", Locale.getDefault()).format(Date(expense.timestamp))}",
                     style = MaterialTheme.typography.bodySmall
                 )
                 expense.notes?.takeIf { it.isNotEmpty() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }

@@ -28,8 +28,25 @@ class ExpenseViewModel(private val repo: IExpenseRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(ExpenseUiState())
     val uiState: StateFlow<ExpenseUiState> = _uiState.asStateFlow()
 
+    // **Single state for last 7 days**
+    private val _last7DaysExpenses = MutableStateFlow<List<Expense>>(emptyList())
+    val last7DaysExpenses: StateFlow<List<Expense>> = _last7DaysExpenses.asStateFlow()
+
     init {
         setDateFilter(DateFilter.TODAY)
+        loadLast7DaysExpenses()
+    }
+
+    private fun loadLast7DaysExpenses() {
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val start7 = DateUtils.startOfDayMillis(now - 6 * 24 * 60 * 60 * 1000L)
+            val endNow = DateUtils.endOfDayMillis(now)
+            repo.getForDayRange(start7, endNow)
+                .collect { list ->
+                    _last7DaysExpenses.value = list
+                }
+        }
     }
 
     private fun observeDayRange(startMs: Long, endMs: Long) {
@@ -42,7 +59,7 @@ class ExpenseViewModel(private val repo: IExpenseRepository) : ViewModel() {
             .launchIn(viewModelScope)
     }
 
-    /** New function to set the date filter */
+    /** Set date filter (TODAY, YESTERDAY, LAST_7_DAYS, ALL) */
     fun setDateFilter(filter: DateFilter) {
         _uiState.update { it.copy(isLoading = true, dateFilter = filter) }
         val now = System.currentTimeMillis()
@@ -56,10 +73,7 @@ class ExpenseViewModel(private val repo: IExpenseRepository) : ViewModel() {
                 val start7 = now - 6*24*60*60*1000L // last 7 days including today
                 DateUtils.startOfDayMillis(start7) to DateUtils.endOfDayMillis(now)
             }
-
-            else -> {
-                DateUtils.startOfDayMillis(0) to DateUtils.endOfDayMillis(now)
-            }
+            else -> DateUtils.startOfDayMillis(0) to DateUtils.endOfDayMillis(now)
         }
 
         repo.getForDayRange(start, end)
@@ -70,7 +84,22 @@ class ExpenseViewModel(private val repo: IExpenseRepository) : ViewModel() {
             .launchIn(viewModelScope)
     }
 
+    /** --- New function to get last 7 days totals --- */
+    fun last7DaysExpenses(): StateFlow<List<Expense>> {
+        val _last7Days = MutableStateFlow<List<Expense>>(emptyList())
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val start7 = DateUtils.startOfDayMillis(now - 6 * 24 * 60 * 60 * 1000L) // 7 days including today
+            val endNow = DateUtils.endOfDayMillis(now)
+            repo.getForDayRange(start7, endNow)
+                .collect { list ->
+                    _last7Days.value = list
+                }
+        }
+        return _last7Days
+    }
 
+    /** --- existing functions --- */
     fun toggleGrouping() {
         _uiState.update { it.copy(groupByCategory = !it.groupByCategory) }
     }
@@ -140,10 +169,9 @@ class ExpenseViewModel(private val repo: IExpenseRepository) : ViewModel() {
         return results.reversed()
     }
 
-    fun allExpensesSnapshot(): List<Expense> {
-        return _uiState.value.expenses
-    }
+    fun allExpensesSnapshot(): List<Expense> = _uiState.value.expenses
 }
+
 
 class ExpenseViewModelFactory(private val repo: IExpenseRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

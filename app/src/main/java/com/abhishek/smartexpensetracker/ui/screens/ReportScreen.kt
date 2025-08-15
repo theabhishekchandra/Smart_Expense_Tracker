@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.abhishek.smartexpensetracker.data.model.Expense
+import com.abhishek.smartexpensetracker.utils.DateUtils
 import com.abhishek.smartexpensetracker.utils.ExportUtils
 import java.text.SimpleDateFormat
 import java.util.*
@@ -25,17 +26,28 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportScreen(
-    expenses: List<Expense>,
+    last7DaysExpenses: List<Expense>,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val dailyTotals = remember(expenses) {
-        expenses.groupBy { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.timestamp)) }
-            .mapValues { entry -> entry.value.sumOf { it.amount } }
+
+    // Group by day and filter only days with expenses
+    val last7DaysTotals = remember(last7DaysExpenses) {
+        val now = System.currentTimeMillis()
+        (0..6).mapNotNull { i ->
+            val dayStart = DateUtils.startOfDayMillis(now - i * 24*60*60*1000L)
+            val dayEnd = DateUtils.endOfDayMillis(now - i * 24*60*60*1000L)
+            val dayExpenses = last7DaysExpenses.filter { it.timestamp in dayStart..dayEnd }
+            if (dayExpenses.isNotEmpty()) {
+                val total = dayExpenses.sumOf { it.amount }
+                dayStart to total
+            } else null
+        }.reversed() // oldest first
     }
 
-    val categoryTotals = remember(expenses) {
-        expenses.groupBy { it.category }
+    // Category totals
+    val categoryTotals = remember(last7DaysExpenses) {
+        last7DaysExpenses.groupBy { it.category }
             .mapValues { entry -> entry.value.sumOf { it.amount } }
     }
 
@@ -44,18 +56,14 @@ fun ReportScreen(
             ReportTopBar(
                 onBack = onBack,
                 onExport = {
-                    val csv = ExportUtils.buildCsvFromExpenses(expenses)
+                    val csv = ExportUtils.buildCsvFromExpenses(last7DaysExpenses)
                     val uri = ExportUtils.writeCsvToCache(context, "expenses.csv", csv)
-                    if (uri != null) {
-                        Toast.makeText(context, "Exported to cache", Toast.LENGTH_SHORT).show()
-                    }
+                    if (uri != null) Toast.makeText(context, "Exported to cache", Toast.LENGTH_SHORT).show()
                 },
                 onShare = {
-                    val csv = ExportUtils.buildCsvFromExpenses(expenses)
+                    val csv = ExportUtils.buildCsvFromExpenses(last7DaysExpenses)
                     val uri = ExportUtils.writeCsvToCache(context, "expenses.csv", csv)
-                    if (uri != null) {
-                        ExportUtils.shareCsv(context, uri)
-                    }
+                    if (uri != null) ExportUtils.shareCsv(context, uri)
                 }
             )
         }
@@ -66,30 +74,35 @@ fun ReportScreen(
                 .fillMaxSize()
                 .padding(12.dp)
         ) {
+            // Last 7 days totals
             item {
-                SectionTitle("Daily Totals")
-                TotalsList(data = dailyTotals)
+                SectionTitle("Totals — Last 7 Days")
+                TotalsList(
+                    data = last7DaysTotals.associate {
+                        SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(it.first)) to it.second
+                    }
+                )
             }
 
+            // Category totals
             item {
                 SectionTitle("Category Totals")
                 TotalsList(data = categoryTotals)
             }
 
+            // Bar chart for last 7 days
             item {
                 SectionTitle("Daily Overview (Bar Chart)")
-                DailyBarChart(dailyTotals)
+                DailyBarChart(last7DaysTotals.associate { it.first to it.second })
             }
 
-            item {
-                SectionTitle("All Expenses")
-            }
-            items(expenses) { e ->
-                ExpenseRow(expense = e)
-            }
+            // All Expenses
+            item { SectionTitle("All Expenses") }
+            items(last7DaysExpenses) { e -> ExpenseRow(expense = e) }
         }
     }
 }
+
 
 /* ---------------- Reusable Components ---------------- */
 
@@ -149,16 +162,17 @@ fun TotalsList(data: Map<String, Double>) {
 }
 
 @Composable
-fun DailyBarChart(dailyTotals: Map<String, Double>) {
+fun DailyBarChart(dailyTotals: Map<Long, Double>) {
     val maxTotal = dailyTotals.values.maxOrNull() ?: 1.0
     Column {
-        dailyTotals.forEach { (day, total) ->
+        dailyTotals.forEach { (dayMs, total) ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 2.dp)
             ) {
+                val dayLabel = SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(dayMs))
                 Text(
-                    text = day.substring(5), // just show MM-dd
+                    text = dayLabel,
                     modifier = Modifier.width(60.dp),
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -192,7 +206,7 @@ fun ExpenseRow(expense: Expense) {
         },
         trailingContent = { Text("₹${"%.2f".format(expense.amount)}") }
     )
-    Divider()
+    HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 }
 
 /* ---------------- Preview ---------------- */
@@ -206,5 +220,5 @@ fun PreviewReportScreen() {
         Expense(title = "Bus", amount = 20.0, category = "Transport", notes = "", receiptUri = null, timestamp = now - 86400000L),
         Expense(title = "Lunch", amount = 100.0, category = "Food", notes = "", receiptUri = null, timestamp = now - 2 * 86400000L)
     )
-    ReportScreen(expenses = demo, onBack = {})
+    ReportScreen(last7DaysExpenses = demo, onBack = {})
 }
