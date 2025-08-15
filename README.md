@@ -72,4 +72,4 @@ AI tools like **ChatGPT** and **Gemini** were leveraged to accelerate developmen
 ## **Setup Instructions**
 1. Clone or download the repository
 ```bash
-git clone <your-repo-link>
+[git clone <your-repo-link>](https://github.com/theabhishekchandra/Smart_Expense_Tracker.git)
