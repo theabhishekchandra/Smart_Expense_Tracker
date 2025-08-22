@@ -1,4 +1,4 @@
-![Screenshot_2025-08-15-19-34-35-89_c307508fac67777b1683d5a68fd1917e](https://github.com/user-attachments/assets/b2326920-46f9-48e5-9f16-be89103c5789)# Smart Daily Expense Tracker
+# Smart Daily Expense Tracker
 **By: Abhishek Chandra**
 
 ---
@@ -16,12 +16,16 @@ This app is built with **Jetpack Compose**, **MVVM architecture**, and **StateFl
 
 ---
 
-## AI Usage Summary
-AI tools were leveraged extensively to accelerate development:  
-- **ChatGPT**: Generated Jetpack Compose layouts, reusable components, ViewModel logic, and report aggregation functions.  
-- **GitHub Copilot**: Assisted in writing boilerplate code, repository functions, and CSV export logic.  
-- **AI-assisted UX & Validation**: Suggested input validation, duplicate detection, and performance improvements.  
+---
 
+## AI Usage Summary
+AI tools were leveraged extensively to accelerate development and improve code quality:
+
+**ChatGPT**:  
+1. Generated **Jetpack Compose UI layouts**, reusable components, and screen structures.  
+2. Assisted in writing **ViewModel logic**, repository functions, and **CSV export / data aggregation** functions.  
+3. Suggested **input validation**, **duplicate detection**, and **performance optimizations** for smooth app behavior.  
+ 
 ---
 
 ## Prompt Logs
@@ -33,7 +37,6 @@ AI tools were leveraged extensively to accelerate development:
 | Report Screen | "Create Jetpack Compose report screen with daily totals, category totals, and bar chart" | Implemented LazyColumn-based report |
 | Duplicate Detection | "Add duplicate expense detection before inserting into repository" | Added in addExpense() function |
 
-(Full prompt logs are available in `Prompt_Logs.md`)
 
 ---
 
@@ -55,23 +58,23 @@ AI tools were leveraged extensively to accelerate development:
 
 ## APK
 Download and install the app from:  
-[Smart Daily Expense Tracker APK](APK/SmartDailyExpenseTracker.apk)  
+[Smart Daily Expense Tracker APK](https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/APK/app-debug.apk)  
 
 ---
 
 ## Screenshots
 
 **Expense Entry Screen**  
-![Expense Entry](Screenshots/ExpenseEntry.png)
+<img src="https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/Screenshots/Add%20expense%20without%20data.jpg" width="400"/>
 
 **Expense List Screen**  
-![Expense List](Screenshots/ExpenseList.png)
+<img src="https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/Screenshots/Expense%20With%20data%20filter.jpg" width="400"/>
 
 **Report Screen (Last 7 Days)**  
-![Report Screen](Screenshots/ExpenseReport.png)
+<img src="https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/Screenshots/Last%207%20Days%20Report.jpg" width="400"/>
 
 **Export / Share CSV**  
-![Export Share](Screenshots/ExportShare.png)
+<img src="https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/Screenshots/Share%20last%207%20day%20report.jpg" width="400"/>
 
 ---
 
@@ -80,11 +83,6 @@ Full source code is available in the `Source_Code/` folder.
 - **Jetpack Compose UI**  
 - **MVVM architecture**  
 - **Clean & modular project structure**  
-
----
-
-## Resume
-Abhishek Chandra’s latest resume is included as `Resume.pdf` in the root folder.
 
 ---
 
