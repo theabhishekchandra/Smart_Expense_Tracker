@@ -1,6 +1,8 @@
 package com.abhishek.smartexpensetracker.data.repository
 
+import com.abhishek.smartexpensetracker.data.model.DateFilter
 import com.abhishek.smartexpensetracker.data.model.Expense
+
 import kotlinx.coroutines.flow.Flow
 
 interface IExpenseRepository {
@@ -11,4 +13,6 @@ interface IExpenseRepository {
     suspend fun delete(expense: Expense)
     suspend fun totalForDayRange(dayStart: Long, dayEnd: Long): Double
     suspend fun getUnsynced(): List<Expense>
+    fun getExpensesByFilter(filter: DateFilter): Flow<List<Expense>>
+
 }

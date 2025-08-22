@@ -1,4 +1,4 @@
-package com.abhishek.smartexpensetracker.ui.screens
+package com.abhishek.smartexpensetracker.ui.screens.report
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.UploadFile
@@ -17,15 +18,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.abhishek.smartexpensetracker.core.navigation.NavManager
+import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.data.model.Expense
-import com.abhishek.smartexpensetracker.utils.DateUtils
-import com.abhishek.smartexpensetracker.utils.ExportUtils
+import com.abhishek.smartexpensetracker.core.utils.DateUtils
+import com.abhishek.smartexpensetracker.core.utils.ExportUtils
+import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportScreen(
+    navManager: NavManager? = null,
     last7DaysExpenses: List<Expense>,
     onBack: () -> Unit
 ) {
@@ -51,14 +56,20 @@ fun ReportScreen(
             .mapValues { entry -> entry.value.sumOf { it.amount } }
     }
 
-    Scaffold(
+    BaseScaffold(
+        navManager = navManager,
+        currentRoute = ScreenRoutes.Reports.route,
         topBar = {
             ReportTopBar(
                 onBack = onBack,
                 onExport = {
                     val csv = ExportUtils.buildCsvFromExpenses(last7DaysExpenses)
                     val uri = ExportUtils.writeCsvToCache(context, "expenses.csv", csv)
-                    if (uri != null) Toast.makeText(context, "Exported to cache", Toast.LENGTH_SHORT).show()
+                    if (uri != null) Toast.makeText(
+                        context,
+                        "Exported to cache",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 },
                 onShare = {
                     val csv = ExportUtils.buildCsvFromExpenses(last7DaysExpenses)
@@ -66,41 +77,42 @@ fun ReportScreen(
                     if (uri != null) ExportUtils.shareCsv(context, uri)
                 }
             )
+        },
+        content = { padding ->
+            LazyColumn(
+                contentPadding = padding,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp)
+            ) {
+                // Last 7 days totals
+                item {
+                    SectionTitle("Totals — Last 7 Days")
+                    TotalsList(
+                        data = last7DaysTotals.associate {
+                            SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(it.first)) to it.second
+                        }
+                    )
+                }
+
+                // Category totals
+                item {
+                    SectionTitle("Category Totals")
+                    TotalsList(data = categoryTotals)
+                }
+
+                // Bar chart for last 7 days
+                item {
+                    SectionTitle("Daily Overview (Bar Chart)")
+                    DailyBarChart(last7DaysTotals.associate { it.first to it.second })
+                }
+
+                // All Expenses
+                item { SectionTitle("All Expenses") }
+                items(last7DaysExpenses) { e -> ExpenseRow(expense = e) }
+            }
         }
-    ) { padding ->
-        LazyColumn(
-            contentPadding = padding,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp)
-        ) {
-            // Last 7 days totals
-            item {
-                SectionTitle("Totals — Last 7 Days")
-                TotalsList(
-                    data = last7DaysTotals.associate {
-                        SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(it.first)) to it.second
-                    }
-                )
-            }
-
-            // Category totals
-            item {
-                SectionTitle("Category Totals")
-                TotalsList(data = categoryTotals)
-            }
-
-            // Bar chart for last 7 days
-            item {
-                SectionTitle("Daily Overview (Bar Chart)")
-                DailyBarChart(last7DaysTotals.associate { it.first to it.second })
-            }
-
-            // All Expenses
-            item { SectionTitle("All Expenses") }
-            items(last7DaysExpenses) { e -> ExpenseRow(expense = e) }
-        }
-    }
+    )
 }
 
 
@@ -113,7 +125,7 @@ fun ReportTopBar(onBack: () -> Unit, onExport: () -> Unit, onShare: () -> Unit) 
         title = { Text("Report — Last 7 days") },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
         },
         actions = {

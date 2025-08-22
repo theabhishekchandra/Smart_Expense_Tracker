@@ -1,4 +1,4 @@
-package com.abhishek.smartexpensetracker.utils
+package com.abhishek.smartexpensetracker.core.utils
 
 import java.util.*
 

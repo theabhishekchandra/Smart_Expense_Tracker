@@ -16,10 +16,10 @@ enum class Category { Staff, Travel, Food, Utility }
 
 @Entity(tableName = "expenses")
 data class Expense(
-    @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val title: String,
-    val amount: Double,
-    val category: String,
+    @PrimaryKey (autoGenerate = true) val id: Long = 0,
+    val title: String = "",
+    val amount: Double = 0.0,
+    val category: String = "",
     val notes: String? = null,
     val receiptUri: String? = null,
     val timestamp: Long = System.currentTimeMillis(),
@@ -38,9 +38,21 @@ enum class ExpenseCategory(val displayName: String) {
 
     companion object {
         fun fromDisplayName(name: String): ExpenseCategory? {
-            return values().find { it.displayName.equals(name, ignoreCase = true) }
+            return ExpenseCategory.entries.find { it.displayName.equals(name, ignoreCase = true) }
         }
     }
 }
 
 data class DailyTotal(val date: LocalDate, val total: Double)
+
+
+enum class DateFilter { TODAY, YESTERDAY, LAST_7_DAYS, ALL }
+enum class GroupMode { TIME, CATEGORY }
+
+data class ExpenseUiState(
+    val expenses: List<Expense> = emptyList(),
+    val searchQuery: String = "",
+    val groupMode: GroupMode = GroupMode.TIME,
+    val loading: Boolean = false,
+    val error: String? = null,
+)

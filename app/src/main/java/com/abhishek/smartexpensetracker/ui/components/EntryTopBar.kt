@@ -1,6 +1,7 @@
 package com.abhishek.smartexpensetracker.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -14,6 +15,6 @@ import androidx.compose.runtime.Composable
 fun EntryTopBar(topTotal: Double, onBack: () -> Unit) {
     TopAppBar(
         title = { Text("Add Expense — Today ₹${"%.2f".format(topTotal)}") },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") } }
+        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } }
     )
 }
