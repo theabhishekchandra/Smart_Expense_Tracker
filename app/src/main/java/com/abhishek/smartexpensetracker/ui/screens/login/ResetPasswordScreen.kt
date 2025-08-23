@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.ui.components.AppButton
-import com.abhishek.smartexpensetracker.ui.components.KagazMitraToolbar
+import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
 import com.abhishek.smartexpensetracker.ui.components.LabeledTextField
 import com.abhishek.smartexpensetracker.ui.components.SwitchAuthText
 
@@ -54,12 +54,11 @@ fun ResetPasswordScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            KagazMitraToolbar(
+            FinanceTopBar(
                 title = "Reset Password",
                 onBackClick = {
                     navManager?.navigateBack()
-                },
-                onActionClick = null
+                }
             )
         }
     ) { innerPadding ->

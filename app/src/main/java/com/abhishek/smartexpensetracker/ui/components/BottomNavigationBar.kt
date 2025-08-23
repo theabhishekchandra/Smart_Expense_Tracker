@@ -3,11 +3,17 @@ package com.abhishek.smartexpensetracker.ui.components
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardVoice
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,10 +30,10 @@ fun BottomNavigationBar(
 ) {
     val items = listOf(
         BottomNavItem("Home", Icons.Default.Home, ScreenRoutes.Home.route),
-        BottomNavItem("Documents", Icons.Default.Description, ScreenRoutes.ExpenseList.route),
-        BottomNavItem("Voice", Icons.Default.Mic, ScreenRoutes.Voice.route),
-        BottomNavItem("Report", Icons.Default.Assessment, ScreenRoutes.Reports.route),
-        BottomNavItem("Profile", Icons.Default.Person, ScreenRoutes.Profile.route)
+        BottomNavItem("Expenses", Icons.AutoMirrored.Filled.ReceiptLong, ScreenRoutes.ExpenseList.route),
+        BottomNavItem("Voice", Icons.Default.KeyboardVoice, ScreenRoutes.Voice.route),
+        BottomNavItem("Reports", Icons.Default.PieChart, ScreenRoutes.Reports.route),
+        BottomNavItem("Profile", Icons.Default.AccountCircle, ScreenRoutes.Profile.route)
     )
 
     NavigationBar(

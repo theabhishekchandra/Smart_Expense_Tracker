@@ -1,6 +1,9 @@
 package com.abhishek.smartexpensetracker.ui.screens.home
 
-
+import android.text.BoringLayout
+import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
+import com.abhishek.smartexpensetracker.ui.screens.staff.Role
+import com.abhishek.smartexpensetracker.ui.screens.staff.StaffExpense
 
 
 data class HomeUiState(
@@ -9,15 +12,31 @@ data class HomeUiState(
     val todayTotal: Double = 0.0,
     val monthExpense: Double = 0.0,
     val monthIncome: Double = 0.0,
+    val isBusiness : Boolean = false,
     val categoryBreakdown: List<CategorySlice> = emptyList(),
     val weeklyTrend: List<DailyPoint> = emptyList(),
     val budgets: List<BudgetProgress> = emptyList(),
     val aiTips: List<AiTip> = emptyList(),
     val improvements: List<ImprovementIdea> = emptyList(),
     val pendingApprovals: List<ApprovalItem> = emptyList(),
-    val recent: List<ExpenseItem> = emptyList()
+    val recent: List<ExpenseItem> = emptyList(),
+    val staffLeaderboard : List<StaffSpending> = listOf<StaffSpending>()
 )
 
+data class StaffSpending(
+    val id: Int,                      // Unique ID for the expense
+    val staffId: Int,                  // User ID of staff
+    val staffName: String,             // Display name of staff
+    val role: Role,               // Role (Admin, Approver, Viewer, EntryOnly)
+    val amount: Double,                // Expense amount
+    val category: String,              // e.g., Travel, Food, Office Supplies
+    val description: String,           // Short description of expense
+    val date: Long,                    // Timestamp (System.currentTimeMillis())
+    val status: ExpenseStatus,         // Pending, Approved, Rejected
+    val approverId: Int? = null,       // Who approved/rejected
+    val approverName: String? = null,  // Name of approver
+    val notes: String? = null          // Optional admin/approver notes
+)
 
 data class CategorySlice(val name: String, val amount: Double)
 

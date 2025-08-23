@@ -3,7 +3,7 @@ package com.abhishek.smartexpensetracker.core.navigation
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
-object RoutesConst {
+object  RoutesConst {
 
     // Graphs
     const val AUTH_GRAPH = "AUTH_GRAPH"
@@ -29,9 +29,8 @@ object RoutesConst {
     const val CHANGE_PASSWORD_SCREEN = "CHANGE_PASSWORD_SCREEN"
     const val SET_NEW_PASSWORD_SCREEN = "SET_NEW_PASSWORD_SCREEN"
 
-    // Dashboard & Main
+    // Main Screens With BottomBarNavigation
     const val HOME_SCREEN = "HOME_SCREEN"
-    const val DASHBOARD_SCREEN = "DASHBOARD_SCREEN"
     const val NOTIFICATION_SCREEN = "NOTIFICATION_SCREEN"
     const val VOICE_SCREEN = "VOICE_SCREEN"
 
@@ -57,6 +56,9 @@ object RoutesConst {
     const val STAFF_DASHBOARD_SCREEN = "STAFF_DASHBOARD_SCREEN"
     const val APPROVAL_SCREEN = "APPROVAL_SCREEN"
     const val STAFF_REPORTS_SCREEN = "STAFF_REPORTS_SCREEN"
+    const val STAFF_PROFILE_SCREEN = "STAFF_PROFILE_SCREEN"
+    const val QUICK_VIEW_SCREEN = "QUICK_VIEW_SCREEN"
+    const val PROCESSED_EXPENSE_SCREEN = "PROCESSED_EXPENSE_SCREEN"
 
     // Profile & Settings
     const val PROFILE_SCREEN = "PROFILE_SCREEN"

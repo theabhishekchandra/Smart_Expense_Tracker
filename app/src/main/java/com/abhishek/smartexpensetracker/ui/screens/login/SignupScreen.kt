@@ -39,7 +39,7 @@ import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.ui.components.AppButton
 import com.abhishek.smartexpensetracker.ui.components.DividerWithText
-import com.abhishek.smartexpensetracker.ui.components.KagazMitraToolbar
+import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
 import com.abhishek.smartexpensetracker.ui.components.LabeledTextField
 import com.abhishek.smartexpensetracker.ui.components.SocialLoginButton
 import com.abhishek.smartexpensetracker.ui.components.SwitchAuthText
@@ -66,12 +66,11 @@ fun SignupScreen(
 
     Scaffold(
         topBar = {
-            KagazMitraToolbar(
+            FinanceTopBar(
                 title = "Signup to your account",
                 onBackClick = {
                     navManager?.navigateBack()
-                },
-                onActionClick = null
+                }
             )
         }
     ) { innerPadding ->

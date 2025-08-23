@@ -33,5 +33,7 @@ fun AppNavigator() {
         splashNavGraph(navManager)
         authNavGraph(navManager)
         mainNavGraph(navManager)
+        staffNavGraph(navManager)
+        reportNavGraph(navManager)
     }
 }

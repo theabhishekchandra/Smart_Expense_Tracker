@@ -43,7 +43,10 @@ import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.core.voice.VoiceManager
 import com.abhishek.smartexpensetracker.data.model.DateFilter
 import com.abhishek.smartexpensetracker.data.model.Expense
+import com.abhishek.smartexpensetracker.data.model.ExpenseDM
+import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
 import com.abhishek.smartexpensetracker.data.model.GroupMode
+import com.abhishek.smartexpensetracker.data.model.UserRole
 import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
 import com.abhishek.smartexpensetracker.ui.components.BottomNavigationBar
 import com.abhishek.smartexpensetracker.ui.screens.login.viewmodel.ExpenseViewModel
@@ -55,167 +58,93 @@ import kotlin.math.roundToInt
 @Composable
 fun ExpenseListScreen(
     navManager: NavManager? = null,
-    viewModel: ExpenseViewModel? = hiltViewModel()
+    viewModel: ExpenseViewModel? = hiltViewModel(),
+    userRole: UserRole = UserRole.PERSONAL, // Pass role here
+    currentUserId: String? = null // For filtering personal expenses
 ) {
     val uiState by viewModel?.uiState!!.collectAsState()
-    var filterExpanded by remember { mutableStateOf(false) }
-    var total by remember{ mutableDoubleStateOf(0.0) }
+    val demoExpenses = listOf(
+        ExpenseDM(title = "Tea", amount = 10.0, category = "Food", notes = "Morning tea", receiptUri = null),
+        ExpenseDM(title = "Bus", amount = 20.0, category = "Transport", notes = "Office travel", receiptUri = null)
+    )
+    uiState.copy(expenses = demoExpenses)
 
-    LaunchedEffect(uiState.expenses) {
-        uiState.expenses.forEach {
-            total = total + it.amount
+    var filterExpanded by remember { mutableStateOf(false) }
+    var total by remember { mutableDoubleStateOf(0.0) }
+
+    // Filter expenses based on role
+    val filteredExpenses = remember(uiState.expenses, userRole, currentUserId) {
+        when (userRole) {
+            UserRole.PERSONAL -> uiState.expenses.filter { it.userId == currentUserId }
+            UserRole.ADMIN -> uiState.expenses // Admin sees all
+            UserRole.APPROVER -> uiState.expenses.filter { it.status == ExpenseStatus.PENDING }
+            UserRole.ENTRY_ONLY -> uiState.expenses.filter { it.userId == currentUserId }
+            UserRole.VIEWER -> uiState.expenses // Read-only
         }
+    }
+
+    LaunchedEffect(filteredExpenses) {
+        total = filteredExpenses.sumOf { it.amount }
     }
 
     BaseScaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text("Expenses (${total}) • ₹${"%.2f".format(total)}")
-                },
+                title = { Text("Expenses (${filteredExpenses.size}) • ₹${"%.2f".format(total)}") },
                 actions = {
-                    // 🔹 Search box
-//                    TextField(
-//                        value = uiState.searchQuery,
-//                        onValueChange = { viewModel.updateSearch(it) },
-//                        placeholder = { Text("Search…") },
-//                        singleLine = true,
-//                        modifier = Modifier.width(150.dp).padding(end = 8.dp)
-//                    )
-
-//                    // 🔹 Filter menu
-//                    Box {
-//                        IconButton(onClick = { filterExpanded = true }) {
-//                            Icon(Icons.Default.CalendarMonth, contentDescription = "Filter")
-//                        }
-//                        DropdownMenu(
-//                            expanded = filterExpanded,
-//                            onDismissRequest = { filterExpanded = false }
-//                        ) {
-//                            DropdownMenuItem(
-//                                text = { Text("Today") },
-//                                onClick = { viewModel.loadExpenses(DateFilter.TODAY); filterExpanded = false }
-//                            )
-//                            DropdownMenuItem(
-//                                text = { Text("Yesterday") },
-//                                onClick = { viewModel.loadExpenses(DateFilter.YESTERDAY); filterExpanded = false }
-//                            )
-//                            DropdownMenuItem(
-//                                text = { Text("Last 7 Days") },
-//                                onClick = { viewModel.loadExpenses(DateFilter.LAST_7_DAYS); filterExpanded = false }
-//                            )
-//                            DropdownMenuItem(
-//                                text = { Text("All") },
-//                                onClick = { viewModel.loadExpenses(DateFilter.ALL); filterExpanded = false }
-//                            )
-//                        }
-//                    }
-
-//                    // 🔹 Toggle group
-//                    IconButton(onClick = { viewModel.toggleGroupMode() }) {
-//                        Icon(
-//                            imageVector = if (uiState.groupMode == GroupMode.TIME) Icons.Default.Category else Icons.Default.AccessTime,
-//                            contentDescription = "Toggle group"
-//                        )
-//                    }
-//
-//                    // 🔹 Reports
-//                    IconButton(onClick = { /* navManager?.navigate(ScreenRoutes.Report.route) */ }) {
-//                        Icon(Icons.Default.Assessment, contentDescription = "Report")
-//                    }
+                    // TODO: Add filters, group toggle, reports button if needed
                 }
             )
         },
         navManager = navManager,
         currentRoute = ScreenRoutes.ExpenseList.route,
-        /*bottomBar = {
-            BottomNavigationBar(
-                selectedRoute = ScreenRoutes.ExpenseList.route,
-                onItemSelected = { route ->
-                    if (route == ScreenRoutes.Voice.route) {
-                        VoiceManager.toggleListening()
-                    } else {
-                        VoiceManager.stopListening()
-                        navManager?.navigate(route)
-                    }
-                }
-            )
+        /*floatingActionButton = {
+            if (userRole == UserRole.PERSONAL || userRole == UserRole.ADMIN || userRole == UserRole.ENTRY_ONLY) {
+                FloatingAddButton { navManager?.navigate(ScreenRoutes.AddExpense.route) }
+            }
         },*/
-        floatingActionButton = {
-            FloatingAddButton(onClick = { navManager?.navigate(ScreenRoutes.AddExpense.route) })
-        },
         content = { padding ->
             ExpenseList(
-            expenses = uiState.expenses,
-            groupMode = uiState.groupMode,
-            onDeleteExpense = { viewModel.deleteExpense(it) },
-            onEditExpense = { viewModel.editExpense(it) },
-            padding = padding,
-            isLoading = false
-        ) }
+                expenses = filteredExpenses,
+                groupMode = uiState.groupMode,
+                userRole = userRole,
+                onDeleteExpense = { if (userRole == UserRole.PERSONAL || userRole == UserRole.ADMIN) viewModel.deleteExpense(it) },
+                onEditExpense = { if (userRole == UserRole.PERSONAL || userRole == UserRole.ADMIN || userRole == UserRole.ENTRY_ONLY) viewModel.editExpense(it) },
+                padding = padding,
+                isLoading = false
+            )
+        }
     )
-}
-
-
-@Composable
-fun FloatingAddButton(onClick: () -> Unit) {
-    FloatingActionButton(onClick = onClick) {
-        Icon(Icons.Default.Add, contentDescription = "Add")
-    }
 }
 
 @Composable
 fun ExpenseList(
-    expenses: List<Expense>,
+    expenses: List<ExpenseDM>,
     groupMode: GroupMode,
-    onDeleteExpense: (Expense) -> Unit,
-    onEditExpense: (Expense) -> Unit,
+    userRole: UserRole,
+    onDeleteExpense: (ExpenseDM) -> Unit,
+    onEditExpense: (ExpenseDM) -> Unit,
     padding: PaddingValues,
     isLoading: Boolean
 ) {
     if (expenses.isEmpty() && !isLoading) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding),
             contentAlignment = Alignment.Center
-        ) {
-            Text("No expenses for selected filter.", style = MaterialTheme.typography.bodyMedium)
-        }
+        ) { Text("No expenses for selected filter.", style = MaterialTheme.typography.bodyMedium) }
     } else if (expenses.isEmpty() || isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else {
-        when (groupMode) {
-            GroupMode.TIME -> {
-                LazyColumn(contentPadding = padding, modifier = Modifier.fillMaxSize()) {
-                    items(expenses) {
-                        SwipeableExpenseItem(
-                            expense = it,
-                            onDelete = onDeleteExpense,
-                            onEdit = onEditExpense
-                        )
-                    }
-                }
-            }
-            GroupMode.CATEGORY -> {
-                val grouped = expenses.groupBy { it.category }
-                LazyColumn(contentPadding = padding, modifier = Modifier.fillMaxSize()) {
-                    grouped.forEach { (cat, list) ->
-                        item { Text(cat, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(12.dp)) }
-                        items(list) {
-                            SwipeableExpenseItem(
-                                expense = it,
-                                onDelete = onDeleteExpense,
-                                onEdit = onEditExpense
-                            )
-                        }
-                    }
-                }
+        LazyColumn(contentPadding = padding, modifier = Modifier.fillMaxSize()) {
+            items(expenses) { expense ->
+                SwipeableExpenseItem(
+                    expense = expense,
+                    userRole = userRole,
+                    onDelete = onDeleteExpense,
+                    onEdit = onEditExpense
+                )
             }
         }
     }
@@ -224,14 +153,15 @@ fun ExpenseList(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SwipeableExpenseItem(
-    expense: Expense,
-    onDelete: (Expense) -> Unit,
-    onEdit: (Expense) -> Unit
+    expense: ExpenseDM,
+    userRole: UserRole,
+    onDelete: (ExpenseDM) -> Unit,
+    onEdit: (ExpenseDM) -> Unit
 ) {
     val context = LocalContext.current
-    val swipeableState = rememberSwipeableState(initialValue = 0)
+    val swipeableState = rememberSwipeableState(0)
     val sizePx = 150f
-    val anchors = mapOf(0f to 0, -sizePx to 1, sizePx to 2) // 0 = normal, -1 = left swipe, 2 = right swipe
+    val anchors = mapOf(0f to 0, -sizePx to 1, sizePx to 2)
 
     Box(
         modifier = Modifier
@@ -244,55 +174,43 @@ fun SwipeableExpenseItem(
             )
             .background(Color.Transparent)
     ) {
-        // Background buttons
-        Row(
-            modifier = Modifier
-                .matchParentSize()
-                .padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Left side Delete
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete",
-                tint = Color.Red,
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable {
+        // Show delete/edit only if role permits
+        if (userRole == UserRole.PERSONAL || userRole == UserRole.ADMIN) {
+            Row(
+                modifier = Modifier.matchParentSize().padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.Red,
+                    modifier = Modifier.size(32.dp).clickable {
                         onDelete(expense)
-                        Toast.makeText(context, "Deleted ${expense.title}", Toast.LENGTH_SHORT)
-                            .show()
+                        Toast.makeText(context, "Deleted ${expense.title}", Toast.LENGTH_SHORT).show()
                     }
-            )
-            // Right side Edit
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit",
-                tint = Color.Blue,
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable {
-                        onEdit(expense)
-                        Toast.makeText(context, "Edit ${expense.title}", Toast.LENGTH_SHORT).show()
-                    }
-            )
+                )
+                if (userRole != UserRole.VIEWER && userRole != UserRole.APPROVER) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = Color.Blue,
+                        modifier = Modifier.size(32.dp).clickable {
+                            onEdit(expense)
+                            Toast.makeText(context, "Edit ${expense.title}", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
+            }
         }
-        // Foreground Card (moves with swipe)
+
+        // Foreground Card
         Card(
-            modifier = Modifier
-                .offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }
-                .fillMaxWidth()
-                .padding(6.dp),
+            modifier = Modifier.offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }.fillMaxWidth().padding(6.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Row(modifier = Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
                     Text(expense.title, style = MaterialTheme.typography.titleSmall)
                     Text(
@@ -305,6 +223,9 @@ fun SwipeableExpenseItem(
                     expense.notes?.takeIf { it.isNotEmpty() }?.let {
                         Text(it, style = MaterialTheme.typography.bodySmall)
                     }
+                    if (userRole == UserRole.ADMIN && expense.userName != null) {
+                        Text("Added by: ${expense.userName}", style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray))
+                    }
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text("₹${"%.2f".format(expense.amount)}", style = MaterialTheme.typography.titleSmall.copy(fontSize = 16.sp))
@@ -313,6 +234,8 @@ fun SwipeableExpenseItem(
         }
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable

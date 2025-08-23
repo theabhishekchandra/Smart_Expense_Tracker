@@ -4,10 +4,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Help
@@ -32,9 +35,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.abhishek.smartexpensetracker.core.navigation.NavManager
+import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
+import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    navManager: NavManager? = null,
     name: String,
     email: String,
     profileImage: String?,
@@ -48,133 +56,146 @@ fun ProfileScreen(
     onUpgradeToPremium: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
-    ) {
-        // Top Row: Profile + Settings Icon
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                AsyncImage(
-                    model = profileImage ?: "https://via.placeholder.com/150",
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier
-                        .size(70.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(email, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                }
-            }
-            IconButton(onClick = onSettingsClick) {
-                Icon(Icons.Default.Settings, contentDescription = "Settings")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Premium Section
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = if (isPremium) Color(0xFF4CAF50) else Color(0xFF03A9F4))
-        ) {
+    BaseScaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Profile", fontSize = 20.sp) },
+            )
+        },
+        currentRoute = ScreenRoutes.Profile.route,
+        navManager = navManager,
+        content = { padding ->
             Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(padding)
             ) {
-                Text(
-                    if (isPremium) "🌟 Premium User" else "Upgrade to Premium",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                if (!isPremium) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = onUpgradeToPremium,
-                        shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-                    ) {
-                        Text("Buy Premium", color = MaterialTheme.colorScheme.primary)
+                // Top Row: Profile + Settings Icon
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AsyncImage(
+                            model = profileImage ?: "https://via.placeholder.com/150",
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text(email, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                        }
+                    }
+                    IconButton(onClick = { navManager?.navigateSingleTop(ScreenRoutes.Settings.route) }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 }
-            }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-        // Toggles: Dark Mode + Business Mode
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(
+                // Premium Section
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = if (isPremium) Color(0xFF4CAF50) else Color(0xFF03A9F4))
                 ) {
-                    Text("Dark Mode", style = MaterialTheme.typography.bodyLarge)
-                    Switch(checked = isDarkMode, onCheckedChange = onToggleDarkMode)
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            if (isPremium) "🌟 Premium User" else "Upgrade to Premium",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        if (!isPremium) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = onUpgradeToPremium,
+                                shape = RoundedCornerShape(50),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                            ) {
+                                Text("Buy Premium", color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
                 }
-                Divider()
-                Row(
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Toggles: Dark Mode + Business Mode
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Text("Business Mode", style = MaterialTheme.typography.bodyLarge)
-                    Switch(checked = isBusinessMode, onCheckedChange = onToggleBusinessMode)
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Dark Mode", style = MaterialTheme.typography.bodyLarge)
+                            Switch(checked = isDarkMode, onCheckedChange = onToggleDarkMode)
+                        }
+                        Divider()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Business Mode", style = MaterialTheme.typography.bodyLarge)
+                            Switch(checked = isBusinessMode, onCheckedChange = onToggleBusinessMode)
+                        }
+                    }
                 }
-            }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-        // Business Section
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Business Details", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Business Name: My Company Pvt Ltd", style = MaterialTheme.typography.bodyMedium)
-                Text("GST Number: 22AAAAA0000A1Z5", style = MaterialTheme.typography.bodyMedium)
-                Text("Business Email: support@company.com", style = MaterialTheme.typography.bodyMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                // Business Section
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Business Details", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Business Name: My Company Pvt Ltd", style = MaterialTheme.typography.bodyMedium)
+                        Text("GST Number: 22AAAAA0000A1Z5", style = MaterialTheme.typography.bodyMedium)
+                        Text("Business Email: support@company.com", style = MaterialTheme.typography.bodyMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = onEditBusinessDetails,
+                            shape = RoundedCornerShape(50)
+                        ) {
+                            Text("Edit Business Details")
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Edit Profile Button
                 OutlinedButton(
-                    onClick = onEditBusinessDetails,
+                    onClick = onEditProfile,
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(50)
                 ) {
-                    Text("Edit Business Details")
+                    Text("Edit Personal Profile")
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Edit Profile Button
-        OutlinedButton(
-            onClick = onEditProfile,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(50)
-        ) {
-            Text("Edit Personal Profile")
-        }
-    }
+    )
 }
 
 

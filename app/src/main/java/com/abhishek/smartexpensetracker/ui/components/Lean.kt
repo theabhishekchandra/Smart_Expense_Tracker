@@ -57,13 +57,7 @@ fun BaseScreen(
     content: @Composable () -> Unit
 ) {
     Scaffold(
-        topBar = {
-            KagazMitraToolbar(
-                title = "Kagaz Mitra",
-                onBackClick = {
-                    // Handle navigation icon click
-                }
-        )},
+
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
         Box(modifier = Modifier.padding(it)) {

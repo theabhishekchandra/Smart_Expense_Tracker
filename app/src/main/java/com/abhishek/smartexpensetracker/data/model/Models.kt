@@ -50,7 +50,7 @@ enum class DateFilter { TODAY, YESTERDAY, LAST_7_DAYS, ALL }
 enum class GroupMode { TIME, CATEGORY }
 
 data class ExpenseUiState(
-    val expenses: List<Expense> = emptyList(),
+    val expenses: List<ExpenseDM> = emptyList(),
     val searchQuery: String = "",
     val groupMode: GroupMode = GroupMode.TIME,
     val loading: Boolean = false,

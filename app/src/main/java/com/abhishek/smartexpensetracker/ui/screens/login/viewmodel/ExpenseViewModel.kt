@@ -1,5 +1,6 @@
 package com.abhishek.smartexpensetracker.ui.screens.login.viewmodel
 
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abhishek.smartexpensetracker.data.model.DateFilter
@@ -21,20 +22,24 @@ class ExpenseViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ExpenseUiState())
     val uiState: StateFlow<ExpenseUiState> = _uiState.asStateFlow()
+
+    private val _expenses = MutableStateFlow<List<Expense>>(emptyList())
+    val expenses: StateFlow<List<Expense>> = _expenses.asStateFlow()
+
     private var currentFilter: DateFilter = DateFilter.TODAY
 
     val demoExpenses = listOf(
-        Expense(title = "Tea", amount = 10.0, category = "Food", notes = "Morning tea", receiptUri = null),
-        Expense(title = "Bus", amount = 20.0, category = "Transport", notes = "Office travel", receiptUri = null),
-        Expense(title = "Car", amount = 20.0, category = "Transport", notes = "Office travel", receiptUri = null),
-        Expense(title = "Breakfast", amount = 20.0, category = "Food", notes = "Office travel", receiptUri = null),
-        Expense(title = "Salary", amount = 20.0, category = "Staff", notes = "Office travel", receiptUri = null)
+        ExpenseDM(title = "Tea", amount = 10.0, category = "Food", notes = "Morning tea", receiptUri = null),
+        ExpenseDM(title = "Bus", amount = 20.0, category = "Transport", notes = "Office travel", receiptUri = null),
+        ExpenseDM(title = "Car", amount = 20.0, category = "Transport", notes = "Office travel", receiptUri = null),
+        ExpenseDM(title = "Breakfast", amount = 20.0, category = "Food", notes = "Office travel", receiptUri = null),
+        ExpenseDM(title = "Salary", amount = 20.0, category = "Staff", notes = "Office travel", receiptUri = null)
     )
 
     init {
-//        demoExpenses.forEach {
-//            addExpense(it)
-//        }
+        demoExpenses.forEach {
+            addExpense(it)
+        }
         loadExpenses(currentFilter)
     }
 
@@ -49,7 +54,7 @@ class ExpenseViewModel @Inject constructor(
                 }
                 .collect { list ->
                     val searched = applySearch(list, _uiState.value.searchQuery)
-                    _uiState.update { it.copy(expenses = searched, loading = false) }
+//                    _uiState.update { it.copy(expenses = searched, loading = false) }
                 }
         }
     }
@@ -60,7 +65,7 @@ class ExpenseViewModel @Inject constructor(
         viewModelScope.launch {
             repo.getExpensesByFilter(currentFilter).firstOrNull()?.let { list ->
                 val searched = applySearch(list, query)
-                _uiState.update { it.copy(expenses = searched) }
+//                _uiState.update { it.copy(expenses = searched) }
             }
         }
     }
@@ -80,12 +85,12 @@ class ExpenseViewModel @Inject constructor(
 
     /** 🔹 CRUD */
     /** 🔹 Add new expense */
-    fun addExpense(expense: Expense) = viewModelScope.launch {
+    fun addExpense(expense: ExpenseDM) = viewModelScope.launch {
         try {
-            repo.insert(expense)
+//            repo.insert(expense)
             _uiState.update { state ->
                 state.copy(
-                    expenses = state.expenses + expense
+                    expenses = (state.expenses + expense)
                 )
             }
         } catch (e: Exception) {
@@ -94,9 +99,9 @@ class ExpenseViewModel @Inject constructor(
     }
 
     /** 🔹 Edit expense */
-    fun editExpense(expense: Expense) = viewModelScope.launch {
+    fun editExpense(expense: ExpenseDM) = viewModelScope.launch {
         try {
-            repo.update(expense)
+//            repo.update(expense)
             // Reuse updateList logic
             updateList(
                 ExpenseDM(
@@ -105,7 +110,8 @@ class ExpenseViewModel @Inject constructor(
                     category = expense.category,
                     notes = expense.notes,
                     receiptUri = expense.receiptUri,
-                    timestamp = expense.timestamp
+                    timestamp = expense.timestamp,
+                    id = expense.id.toString(),
                 )
             )
         } catch (e: Exception) {
@@ -114,9 +120,17 @@ class ExpenseViewModel @Inject constructor(
     }
 
     /** 🔹 Delete expense */
-    fun deleteExpense(expense: Expense) = viewModelScope.launch {
+    fun deleteExpense(expense: ExpenseDM) = viewModelScope.launch {
         try {
-            repo.delete(expense)
+            repo.delete(Expense(
+                id = expense.id.toString().toLong(),
+                title = expense.title,
+                amount = expense.amount,
+                category = expense.category,
+                notes = expense.notes,
+                receiptUri = expense.receiptUri.toString(),
+                timestamp = expense.timestamp
+            ))
             _uiState.update { state ->
                 state.copy(
                     expenses = state.expenses.filter { it.id != expense.id }

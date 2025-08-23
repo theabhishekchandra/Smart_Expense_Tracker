@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.ui.components.AppButton
-import com.abhishek.smartexpensetracker.ui.components.KagazMitraToolbar
+import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
 import com.abhishek.smartexpensetracker.ui.components.LabeledTextField
 import kotlinx.coroutines.launch
 
@@ -54,12 +54,11 @@ fun CreatePasswordScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            KagazMitraToolbar(
+            FinanceTopBar(
                 title = "Create New Password",
                 onBackClick = {
                     navManager?.navigateBack()
-                },
-                onActionClick = null
+                }
             )
         }
     ) { innerPadding ->

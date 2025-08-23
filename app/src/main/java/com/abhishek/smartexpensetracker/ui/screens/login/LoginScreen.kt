@@ -55,10 +55,9 @@ fun LoginScreen(
 
     Scaffold(
         topBar = {
-            KagazMitraToolbar(
+            FinanceTopBar(
                 title = "Login to your account",
                 onBackClick = { navManager?.navigateBack() },
-                onActionClick = null
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }

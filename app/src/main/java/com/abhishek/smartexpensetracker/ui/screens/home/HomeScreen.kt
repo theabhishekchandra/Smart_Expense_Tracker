@@ -1,60 +1,58 @@
 package com.abhishek.smartexpensetracker.ui.screens.home
 
-import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.SpeechRecognizer
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -66,9 +64,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
-import com.abhishek.smartexpensetracker.core.voice.VoiceManager
+import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
 import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
-import com.abhishek.smartexpensetracker.ui.components.BottomNavigationBar
+import com.abhishek.smartexpensetracker.ui.screens.staff.Role
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
 import kotlin.math.roundToInt
 
@@ -80,6 +78,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     BaseScaffold(
+        navManager = navManager,
+        currentRoute = ScreenRoutes.Home.route,
         topBar = {
             TopAppBar(
                 title = {
@@ -91,7 +91,7 @@ fun HomeScreen(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Track smart. Save smart.",
+                            text = if (state.isBusiness) "Business Dashboard" else "Track smart. Save smart.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -107,8 +107,6 @@ fun HomeScreen(
                 }
             )
         },
-        navManager = navManager,
-        currentRoute = ScreenRoutes.Home.route,
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { navManager?.navigate(ScreenRoutes.AddExpense.route) },
@@ -124,115 +122,74 @@ fun HomeScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Common sections
                 item { TodaySummaryCard(state) }
                 item { IncomeVsExpenseCard(state) }
-                if (state.weeklyTrend.isNotEmpty()) {
-                    item { WeeklyTrendCard(state.weeklyTrend, state.currency) }
+
+                if (!state.isBusiness) {
+                    // ---------- BUSINESS MODE ----------
+                    if (state.weeklyTrend.isNotEmpty()) {
+                        item { WeeklyTrendCard(state.weeklyTrend, state.currency) }
+                    }
+                    if (state.pendingApprovals.isNotEmpty()) {
+                        item { PendingApprovalsCard(state.pendingApprovals, state.currency) }
+                    }
+                    if (state.staffLeaderboard.isNotEmpty()) {
+                        item { StaffLeaderboardCard(state.staffLeaderboard, state.currency) }
+                    }
+                } else {
+                    // ---------- PERSONAL MODE ----------
+                    if (state.categoryBreakdown.isNotEmpty()) {
+                        item { CategoryBreakdownCard(state.categoryBreakdown, state.currency) }
+                    }
+                    if (state.budgets.isNotEmpty()) {
+                        item { BudgetsCard(state.budgets, state.currency) }
+                    }
                 }
-                if (state.categoryBreakdown.isNotEmpty()) {
-                    item { CategoryBreakdownCard(state.categoryBreakdown, state.currency) }
-                }
-                if (state.budgets.isNotEmpty()) {
-                    item { BudgetsCard(state.budgets, state.currency) }
-                }
+
+                // AI feedback (common for both modes)
                 if (state.aiTips.isNotEmpty() || state.improvements.isNotEmpty()) {
                     item { AiFeedbackCard(state.aiTips, state.improvements, navManager) }
                 }
-                if (state.pendingApprovals.isNotEmpty()) {
-                    item { PendingApprovalsCard(state.pendingApprovals, state.currency, navManager) }
-                }
+
+                // Recent activity (common)
                 if (state.recent.isNotEmpty()) {
                     item { RecentActivityCard(state.recent, state.currency, navManager) }
                 }
-                item { QuickActionsRow(navManager) }
+
+//                item { QuickActionsRow(navManager) }
                 item { Spacer(Modifier.height(64.dp)) }
             }
         }
     )
-
-//    Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = {
-//                    Column {
-//                        Text(
-//                            text = "Hello, ${state.userName}",
-//                            style = MaterialTheme.typography.titleLarge,
-//                            maxLines = 1,
-//                            overflow = TextOverflow.Ellipsis
-//                        )
-//                        Text(
-//                            text = "Track smart. Save smart.",
-//                            style = MaterialTheme.typography.bodySmall,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                    }
-//                },
-//                actions = {
-//                    IconButton(onClick = { /* notifications */ }) {
-//                        Icon(Icons.Outlined.Notifications, contentDescription = "Notifications")
-//                    }
-//                    IconButton(onClick = { /* menu */ }) {
-//                        Icon(Icons.Outlined.MoreVert, contentDescription = "More")
-//                    }
-//                }
-//            )
-//        },
-//        bottomBar = {
-//            BottomNavigationBar(
-//                selectedRoute = ScreenRoutes.Home.route,
-//                onItemSelected = { route ->
-//                    if (route == ScreenRoutes.Voice.route) {
-//                        VoiceManager.toggleListening()
-//                    } else {
-//                        VoiceManager.stopListening()
-//                        navManager?.navigate(route)
-//                    }
-//                }
-//            )
-//        },
-//        floatingActionButton = {
-//            ExtendedFloatingActionButton(
-//                onClick = { navManager?.navigate(ScreenRoutes.AddExpense.route) },
-//                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-//                text = { Text("Add Expense") }
-//            )
-//        }
-//    ) { padding ->
-//        LazyColumn(
-//            modifier = modifier
-//                .fillMaxSize()
-//                .padding(padding)
-//                .padding(16.dp),
-//            verticalArrangement = Arrangement.spacedBy(16.dp)
-//        ) {
-//            item { TodaySummaryCard(state) }
-//            item { IncomeVsExpenseCard(state) }
-//            if (state.weeklyTrend.isNotEmpty()) {
-//                item { WeeklyTrendCard(state.weeklyTrend, state.currency) }
-//            }
-//            if (state.categoryBreakdown.isNotEmpty()) {
-//                item { CategoryBreakdownCard(state.categoryBreakdown, state.currency) }
-//            }
-//            if (state.budgets.isNotEmpty()) {
-//                item { BudgetsCard(state.budgets, state.currency) }
-//            }
-//            if (state.aiTips.isNotEmpty() || state.improvements.isNotEmpty()) {
-//                item { AiFeedbackCard(state.aiTips, state.improvements, navManager) }
-//            }
-//            if (state.pendingApprovals.isNotEmpty()) {
-//                item { PendingApprovalsCard(state.pendingApprovals, state.currency, navManager) }
-//            }
-//            if (state.recent.isNotEmpty()) {
-//                item { RecentActivityCard(state.recent, state.currency, navManager) }
-//            }
-//            item { QuickActionsRow(navManager) }
-//            item { Spacer(Modifier.height(64.dp)) }
-//        }
-//    }
 }
 
+
 // ---------- SECTION CARDS ----------
+
+@Composable
+private fun StaffLeaderboardCard(
+    leaderboard: List<StaffSpending>,
+    currency: String
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Staff Leaderboard", style = MaterialTheme.typography.titleMedium)
+            leaderboard.take(5).forEachIndexed { index, staff ->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("${index + 1}. ${staff.staffName}", fontWeight = FontWeight.Medium)
+                    Text("₹ ${staff.amount.roundToInt()}", fontWeight = FontWeight.SemiBold)
+                }
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            }
+        }
+    }
+}
+
 
 @Composable
 private fun TodaySummaryCard(state: HomeUiState) {
@@ -248,14 +205,15 @@ private fun TodaySummaryCard(state: HomeUiState) {
                 style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            // TODO : We can add If need in future.
+            /*Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 AssistChip(onClick = { }, label = { Text("Scan receipt") }, leadingIcon = {
                     Icon(Icons.Outlined.CameraAlt, contentDescription = null)
                 })
                 AssistChip(onClick = { }, label = { Text("Open reports") }, leadingIcon = {
                     Icon(Icons.Outlined.Assessment, contentDescription = null)
                 })
-            }
+            }*/
         }
     }
 }
@@ -357,7 +315,7 @@ private fun BudgetsCard(items: List<BudgetProgress>, currency: String) {
         }
     }
 }
-
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AiFeedbackCard(
     tips: List<AiTip>,
@@ -367,35 +325,55 @@ private fun AiFeedbackCard(
     val ctx = LocalContext.current
 
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("AI Insights & Improvements", style = MaterialTheme.typography.titleMedium)
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Title
+            Text(
+                "AI Insights & Improvements",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            // AI Tips Section
             tips.forEach { tip ->
                 ElevatedCard(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
                     )
                 ) {
                     Column(Modifier.padding(12.dp)) {
                         Text(tip.title, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(4.dp))
-                        Text(tip.detail, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                    }
-                }
-            }
-            if (improvements.isNotEmpty()) {
-                FlowRowWrap(spacing = 8.dp) {
-                    improvements.forEach { imp ->
-                        SuggestionChip(
-                            onClick = {
-//                                onAction?.navigate(ScreenRoutes.AddExpense.route)
-//                                onAction(HomeAction.ApplyImprovement(imp.title))
-                                Toast.makeText(ctx,"Clicked On Clip", Toast.LENGTH_SHORT).show()
-                            },
-                            label = { Text(imp.title) }
+                        Text(
+                            tip.detail,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
+            }
+
+            // Suggestions Chips Section
+            if (improvements.isNotEmpty()) {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    improvements.forEach { imp ->
+                        SuggestionChip(
+                            onClick = {
+                                Toast.makeText(ctx, "Clicked for ${imp.actionLabel}", Toast.LENGTH_SHORT).show()
+                            },
+                            label = { Text(imp.title) },
+
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                // TODO: Change Color they show some highlight.
+                                containerColor = MaterialTheme.colorScheme.background
+                            )
+                        )
+                    }
+                }
+
                 Text(
                     "Tap a suggestion to apply quick improvements",
                     style = MaterialTheme.typography.labelMedium,
@@ -406,50 +384,90 @@ private fun AiFeedbackCard(
     }
 }
 
+
 @Composable
 private fun PendingApprovalsCard(
     items: List<ApprovalItem>,
     currency: String,
-    onAction: NavManager?
 ) {
-    val ctx = LocalContext.current
-
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Pending approvals", style = MaterialTheme.typography.titleMedium)
-                AssistChip(onClick = { /* open all */ }, label = { Text("View all") })
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Pending Approvals",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                TextButton(onClick = {  }) {
+                    Text("View all")
+                }
             }
+
+            // Approval Items
             items.take(3).forEach { item ->
-                ElevatedCard(Modifier.fillMaxWidth()) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(item.title, fontWeight = FontWeight.Medium)
-                            Text(
-                                "₹ ${item.amount.roundToInt()} • ₹ ${item.staffName}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Left Side (Info)
+                    Column(Modifier.weight(1f)) {
+                        Text(item.title, fontWeight = FontWeight.Medium)
+                        Text(
+                            "$currency ${item.amount.roundToInt()} • ${item.staffName}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Right Side (Actions)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        IconButton(
+                            onClick = {  },
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                                    CircleShape
+                                )
+                        ) {
+                            Icon(
+                                Icons.Outlined.Close,
+                                contentDescription = "Reject",
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = {
-//                                onAction(HomeAction.Reject(item.id))
-                                Toast.makeText(ctx, "OT ->BTN", Toast.LENGTH_SHORT).show()
-                            }
-                            ) { Text("Reject") }
-                            Button(onClick = {
-//                                onAction(HomeAction.Approve(item.id))
-                            } ) {
-                                Icon(Icons.Outlined.CheckCircle, contentDescription = null)
-                                Spacer(Modifier.width(6.dp))
-                                Text("Approve")
-                            }
+                        Spacer(Modifier.width(2.dp))
+                        IconButton(
+                            onClick = {  },
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                    CircleShape
+                                )
+                        ) {
+                            Icon(
+                                Icons.Outlined.Check,
+                                contentDescription = "Approve",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 }
@@ -457,6 +475,7 @@ private fun PendingApprovalsCard(
         }
     }
 }
+
 
 @Composable
 private fun RecentActivityCard(
@@ -483,7 +502,7 @@ private fun RecentActivityCard(
                     }
                     Text("₹ ${item.amount.roundToInt()}", fontWeight = FontWeight.SemiBold)
                 }
-                Divider()
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
             }
         }
     }
@@ -558,7 +577,7 @@ private fun SimpleBarChart(
 //                    color = MaterialTheme.colorScheme.primary,
                     color = Color.Blue,
                     topLeft = Offset(x, size.height - h - 8f),
-                    size = androidx.compose.ui.geometry.Size(barWidthPx, h),
+                    size = Size(barWidthPx, h),
                     cornerRadius = CornerRadius(corner, corner)
                 )
                 x += barWidthPx + spacingPx
@@ -579,9 +598,9 @@ private fun FlowRowWrap(
     content: @Composable () -> Unit
 ) {
     // Simple wrap using Column + Row blocks (no experimental APIs)
-    val placeables = remember { mutableStateListOf<@Composable () -> Unit>() }
-    placeables.clear()
-    placeables.add(content)
+    val placeable = remember { mutableStateListOf<@Composable () -> Unit>() }
+    placeable.clear()
+    placeable.add(content)
     Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
         // Render single row content (chips will naturally wrap if you use FlowRow from foundation in future)
         Row(horizontalArrangement = Arrangement.spacedBy(spacing)) { content() }
@@ -598,6 +617,64 @@ private fun progressFrom(part: Double, total: Double): Float {
 @Preview(showBackground = true, showSystemUi = true, )
 @Composable
 private fun HomeScreenPreview() {
+
+    // Dummy data list
+    val dummyStaffSpending = listOf(
+        StaffSpending(
+            id = 1,
+            staffId = 101,
+            staffName = "Ravi Sharma",
+            role = Role.Admin,
+            amount = 1200.0,
+            category = "Travel",
+            description = "Taxi to client office",
+            date = System.currentTimeMillis(),
+            status = ExpenseStatus.PENDING
+        ),
+        StaffSpending(
+            id = 2,
+            staffId = 102,
+            staffName = "Neha Gupta",
+            role = Role.EntryOnly,
+            amount = 500.0,
+            category = "Food",
+            description = "Lunch with client",
+            date = System.currentTimeMillis() - 86400000, // 1 day ago
+            status = ExpenseStatus.APPROVED,
+            approverId = 201,
+            approverName = "Amit Verma",
+            notes = "Valid expense"
+        ),
+        StaffSpending(
+            id = 3,
+            staffId = 103,
+            staffName = "Amit Verma",
+            role = Role.Approver,
+            amount = 3000.0,
+            category = "Office Supplies",
+            description = "Stationery purchase",
+            date = System.currentTimeMillis() - 2 * 86400000, // 2 days ago
+            status = ExpenseStatus.REJECTED,
+            approverId = 201,
+            approverName = "Ravi Sharma",
+            notes = "Need prior approval"
+        ),
+        StaffSpending(
+            id = 4,
+            staffId = 104,
+            staffName = "Priya Singh",
+            role = Role.Viewer,
+            amount = 1500.0,
+            category = "Travel",
+            description = "Flight ticket booking",
+            date = System.currentTimeMillis() - 3 * 86400000, // 3 days ago
+            status = ExpenseStatus.APPROVED,
+            approverId = 201,
+            approverName = "Amit Verma",
+            notes = "Approved for client visit"
+        )
+    )
+
     val sample = HomeUiState(
         userName = "Abhishek",
         todayTotal = 2350.0,
@@ -640,9 +717,13 @@ private fun HomeScreenPreview() {
             ExpenseItem("1", "Printer ink", "Utility", 780.0, "10:24 AM"),
             ExpenseItem("2", "Team lunch", "Food", 2450.0, "Yesterday"),
             ExpenseItem("3", "Airport taxi", "Travel", 820.0, "Yesterday")
-        )
+        ),
+        staffLeaderboard = dummyStaffSpending
     )
     SmartExpenseTrackerTheme {
         HomeScreen(null,sample)
+//        PendingApprovalsCard(sample.pendingApprovals, sample.currency, )
+//        AiFeedbackCard(sample.aiTips, sample.improvements, null)
+
     }
 }
