@@ -720,7 +720,10 @@ private fun HomeScreenPreview() {
         ),
         staffLeaderboard = dummyStaffSpending
     )
-    SmartExpenseTrackerTheme {
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
         HomeScreen(null,sample)
 //        PendingApprovalsCard(sample.pendingApprovals, sample.currency, )
 //        AiFeedbackCard(sample.aiTips, sample.improvements, null)

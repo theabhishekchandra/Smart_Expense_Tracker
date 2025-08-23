@@ -76,7 +76,10 @@ fun SocialLoginButton(
 @Preview(showBackground = true)
 @Composable
 private fun SocialLoginButtonPreview() {
-    SmartExpenseTrackerTheme(darkTheme = true) {
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
         SocialLoginButton(
             label = "Login with Google",
             onClick = {},

@@ -94,7 +94,10 @@ private fun AppSearchBarPreview() {
 
     val items = listOf("Apple", "Banana", "Cherry", "Date", "Elderberry")
 
-    SmartExpenseTrackerTheme {
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
         Surface {
             AppSearchBar(
                 query = query,

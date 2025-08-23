@@ -1,10 +1,9 @@
 package com.abhishek.smartexpensetracker.ui.screens.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
@@ -12,17 +11,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Help
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,10 +25,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.abhishek.smartexpensetracker.core.datastore.ThemeType
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
+import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,19 +41,30 @@ fun ProfileScreen(
     email: String,
     profileImage: String?,
     isPremium: Boolean,
-    isDarkMode: Boolean,
-    isBusinessMode: Boolean,
-    onToggleDarkMode: (Boolean) -> Unit,
-    onToggleBusinessMode: (Boolean) -> Unit,
     onEditProfile: () -> Unit,
     onEditBusinessDetails: () -> Unit,
-    onUpgradeToPremium: () -> Unit,
-    onSettingsClick: () -> Unit
+    settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val prefs by settingsViewModel.userPreferences.collectAsState()
+
+
+    val isBusinessMode by remember { mutableStateOf(false) }
+    val isSystemDarkMode = isSystemInDarkTheme()
+    val isDarkMode by remember { mutableStateOf(isSystemDarkMode) }
+
+    LaunchedEffect(isDarkMode) {
+        //TODO : Change Dark mode or Light mode.
+    }
+
     BaseScaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Profile", fontSize = 20.sp) },
+            FinanceTopBar(
+                title = "Profile",
+                showBackButton = false,
+                showSearch = false,
+                showFilter = false,
+                showNotifications = false,
+                showMenu = false
             )
         },
         currentRoute = ScreenRoutes.Profile.route,
@@ -95,7 +100,11 @@ fun ProfileScreen(
                         }
                     }
                     IconButton(onClick = { navManager?.navigateSingleTop(ScreenRoutes.Settings.route) }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(
+                            modifier = Modifier.size(35.dp),
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
                     }
                 }
 
@@ -120,7 +129,7 @@ fun ProfileScreen(
                         if (!isPremium) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(
-                                onClick = onUpgradeToPremium,
+                                onClick = { navManager?.navigateSingleTop(ScreenRoutes.Subscription.route) },
                                 shape = RoundedCornerShape(50),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color.White)
                             ) {
@@ -145,16 +154,33 @@ fun ProfileScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text("Dark Mode", style = MaterialTheme.typography.bodyLarge)
-                            Switch(checked = isDarkMode, onCheckedChange = onToggleDarkMode)
+                            Switch(
+                                checked = prefs.themeMode == ThemeType.DARK,
+                                onCheckedChange = { checked ->
+                                    settingsViewModel.setTheme(
+                                        if (checked) ThemeType.DARK else ThemeType.LIGHT
+                                    )
+                                }
+                            )
                         }
-                        Divider()
+                        HorizontalDivider(
+                            Modifier,
+                            DividerDefaults.Thickness,
+                            DividerDefaults.color
+                        )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text("Business Mode", style = MaterialTheme.typography.bodyLarge)
-                            Switch(checked = isBusinessMode, onCheckedChange = onToggleBusinessMode)
+                            Switch(
+                                checked = prefs.isBusinessMode,
+                                onCheckedChange = { enabled ->
+                                    settingsViewModel.setBusinessMode(enabled)
+                                }
+                            )
+
                         }
                     }
                 }
@@ -246,13 +272,7 @@ private fun PreviewProfileScreen() {
         email = "ac927920@gmail.com",
         profileImage = "https://via.placeholder.com/150",
         isPremium = false,
-        isDarkMode = false,
-        isBusinessMode = true,
-        onToggleDarkMode = { false },
-        onToggleBusinessMode = { false },
         onEditProfile = {},
-        onEditBusinessDetails = {},
-        onUpgradeToPremium = {},
-        onSettingsClick = {}
+        onEditBusinessDetails = {}
     )
 }

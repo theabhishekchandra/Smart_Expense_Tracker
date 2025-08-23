@@ -7,7 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 
-private val LightColorScheme = lightColorScheme(
+private val DefaultLightColors = lightColorScheme(
     primary = PrimaryColor,
     secondary = SecondaryColor,
     background = WhiteColor,
@@ -20,7 +20,7 @@ private val LightColorScheme = lightColorScheme(
     outline = OutlineColorLight
 )
 
-private val DarkColorScheme = darkColorScheme(
+private val DefaultDarkColors = darkColorScheme(
     primary = PrimaryColor,
     secondary = SecondaryColor,
     background = DarkBackground,
@@ -32,23 +32,45 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = DarkText,
     outline = OutlineColorDark
 )
+private val BusinessLightColors = lightColorScheme(
+    primary = PrimaryColor,
+    secondary = SecondaryColor,
+    background = WhiteColor,
+    surface = LightFillColor,
+    secondaryContainer = LightFillColor,
+    onPrimary = WhiteColor,
+    onSecondary = WhiteColor,
+    onBackground = GreyColor,
+    onSurface = GreyColor,
+    outline = OutlineColorLight
+)
+
+private val BusinessDarkColors = darkColorScheme(
+    primary = PrimaryColor,
+    secondary = SecondaryColor,
+    background = DarkBackground,
+    surface = DarkSurface,
+    secondaryContainer = LightFillColor,
+    onPrimary = WhiteColor,
+    onSecondary = WhiteColor,
+    onBackground = DarkText,
+    onSurface = DarkText,
+    outline = OutlineColorDark
+)
+
 @Composable
 fun SmartExpenseTrackerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    businessMode: Boolean,
     content: @Composable () -> Unit
 ) {
-//    val dataStore: DataStoreManager? = null
-//    val darkTheme = if (dataStore != null) {
-//        dataStore.isDarkTheme().collectAsState(initial = null).value
-//            ?: isSystemInDarkTheme() // fallback here
-//    } else {
-//        isSystemInDarkTheme()
-//    }
-
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colors = when {
+        businessMode -> if (darkTheme) BusinessDarkColors else BusinessLightColors
+        else -> if (darkTheme) DefaultDarkColors else DefaultLightColors
+    }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = colors,
         typography = Typography,
         content = content
     )

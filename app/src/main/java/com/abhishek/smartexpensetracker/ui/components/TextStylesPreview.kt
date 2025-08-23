@@ -72,7 +72,10 @@ fun PreviewText(label: String, style: androidx.compose.ui.text.TextStyle) {
 @Composable
 fun TextStylesPreview_Light() {
 
-    SmartExpenseTrackerTheme(darkTheme = false) {
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
         TextStylesPreview()
     }
 }
@@ -80,7 +83,10 @@ fun TextStylesPreview_Light() {
 @Preview(showBackground = true)
 @Composable
 fun TextStylesPreview_Dark() {
-    SmartExpenseTrackerTheme(darkTheme = true) {
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
         TextStylesPreview()
     }
 }

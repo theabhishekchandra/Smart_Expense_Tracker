@@ -42,7 +42,10 @@ fun AppButton(
 @Preview
 @Composable
 private fun AppButtonPreview() {
-    SmartExpenseTrackerTheme {
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ) {
         AppButton(
             text = "Button",
             onClick = {},

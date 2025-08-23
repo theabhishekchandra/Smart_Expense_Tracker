@@ -9,25 +9,41 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.lifecycleScope
-import com.abhishek.smartexpensetracker.core.navigation.AppNavigator
+import com.abhishek.smartexpensetracker.core.datastore.BusinessMode
+import com.abhishek.smartexpensetracker.core.datastore.PreferencesKeys
+import com.abhishek.smartexpensetracker.core.datastore.ThemeType
+import com.abhishek.smartexpensetracker.core.datastore.UserPreferencesRepository
+import com.abhishek.smartexpensetracker.core.navigation.AppNavGraph
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import com.abhishek.smartexpensetracker.core.voice.VoiceManager
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var preferencesRepository: UserPreferencesRepository
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
         setContent {
-            SmartExpenseTrackerTheme() {
-                AppSetup()
+            // Collect theme + business mode directly
+            val themeMode by preferencesRepository.themeMode.collectAsState(initial = ThemeType.LIGHT)
+            val businessMode by preferencesRepository.businessMode.collectAsState(initial = false)
+
+            SmartExpenseTrackerTheme(
+                darkTheme = themeMode == ThemeType.DARK,
+                businessMode = businessMode is BusinessMode.Business
+            ) {
+//                AppSetup()
+                AppNavGraph()
 
             }
         }
@@ -37,6 +53,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        VoiceManager.stopListening()
     }
 }
 @Composable
@@ -56,6 +73,6 @@ fun AppSetup(){
         modifier = Modifier.fillMaxSize(),
         color = backgroundColor
     ) {
-        AppNavigator()
+        AppNavGraph()
     }
 }

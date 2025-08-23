@@ -94,8 +94,11 @@ data class BottomNavItem(
 @Preview(showBackground = true)
 @Composable
 private fun BottomNavigationBarLightPreview() {
-    SmartExpenseTrackerTheme(darkTheme = false) {
-        BottomNavigationBar(
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
+    BottomNavigationBar(
             selectedRoute = ScreenRoutes.Home.route,
             onItemSelected = {}
         )
@@ -105,7 +108,10 @@ private fun BottomNavigationBarLightPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun BottomNavigationBarDarkPreview() {
-    SmartExpenseTrackerTheme(darkTheme = true) {
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
         BottomNavigationBar(
             selectedRoute = ScreenRoutes.Home.route,
             onItemSelected = {}

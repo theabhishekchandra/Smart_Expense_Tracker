@@ -127,14 +127,8 @@ fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
             email = "ac927920@gmail.com",
             profileImage = "https://via.placeholder.com/150",
             isPremium = false,
-            isDarkMode = false,
-            isBusinessMode = true,
-            onToggleDarkMode = { false },
-            onToggleBusinessMode = { false },
             onEditProfile = {},
-            onEditBusinessDetails = {},
-            onUpgradeToPremium = {},
-            onSettingsClick = {}
+            onEditBusinessDetails = {}
         )
     }
 

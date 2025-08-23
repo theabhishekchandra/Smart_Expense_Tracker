@@ -69,7 +69,10 @@ fun BottomBarButton(
 @Preview(showBackground = true)
 @Composable
 private fun ButtonPreview() {
-    SmartExpenseTrackerTheme {
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
         BottomBarButton(
             onFirstClick = {},
             firstButtonText = "Cancel",

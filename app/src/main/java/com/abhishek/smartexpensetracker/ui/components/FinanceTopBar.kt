@@ -72,7 +72,10 @@ fun FinanceTopBar(
 @Preview(showBackground = true)
 @Composable
 private fun PreviewFinanceTopBarWithDarkMode() {
-    SmartExpenseTrackerTheme(darkTheme = true) {
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
         FinanceTopBar(
             title = "Reports",
             showBackButton = true,
@@ -87,8 +90,11 @@ private fun PreviewFinanceTopBarWithDarkMode() {
 @Preview(showBackground = true)
 @Composable
 private fun PreviewFinanceTopBarWithLightMode() {
-    SmartExpenseTrackerTheme(darkTheme = false) {
-        FinanceTopBar(
+    SmartExpenseTrackerTheme(
+        true,
+        false
+    ){
+    FinanceTopBar(
             title = "Expenses",
             showBackButton = false,
             showSearch = true,

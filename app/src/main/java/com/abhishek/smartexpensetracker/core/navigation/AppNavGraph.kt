@@ -11,7 +11,7 @@ import com.abhishek.smartexpensetracker.core.di.NavManagerEntryPoint
 
 // Root NavHost that connects NavController and sets up screen graphs
 @Composable
-fun AppNavigator() {
+fun AppNavGraph() {
     val context = LocalContext.current.applicationContext
     val navManager = remember {
         EntryPointAccessors.fromApplication(

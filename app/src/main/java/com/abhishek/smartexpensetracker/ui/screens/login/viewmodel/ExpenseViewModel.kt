@@ -1,8 +1,11 @@
 package com.abhishek.smartexpensetracker.ui.screens.login.viewmodel
 
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.abhishek.smartexpensetracker.core.datastore.ThemeType
+import com.abhishek.smartexpensetracker.core.datastore.UserPreferencesRepository
 import com.abhishek.smartexpensetracker.data.model.DateFilter
 import com.abhishek.smartexpensetracker.data.model.Expense
 import com.abhishek.smartexpensetracker.data.model.ExpenseDM
@@ -17,8 +20,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ExpenseViewModel @Inject constructor(
-    private val repo: IExpenseRepository
+    private val repo: IExpenseRepository,
+    private val repository: UserPreferencesRepository
 ) : ViewModel() {
+
+    val isDark = repository.themeMode
+    init {
+        val themeMode = repository.themeMode
+            .stateIn(viewModelScope, SharingStarted.Lazily, ThemeType.LIGHT)
+
+        val businessMode = repository.businessMode
+            .stateIn(viewModelScope, SharingStarted.Lazily, false)
+        Log.d("ExpenseViewModel", "themeMode: ${themeMode.value}")
+        Log.d("ExpenseViewModel", "businessMode: ${businessMode.value}")
+    }
 
     private val _uiState = MutableStateFlow(ExpenseUiState())
     val uiState: StateFlow<ExpenseUiState> = _uiState.asStateFlow()
