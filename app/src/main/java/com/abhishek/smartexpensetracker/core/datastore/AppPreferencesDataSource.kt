@@ -142,4 +142,12 @@ class AppPreferencesDataSource @Inject constructor(
 
     override suspend fun getEmailAlertsOnce(): Boolean =
         dataStore.data.map { it[PreferencesKeys.EMAIL_ALERTS] ?: true }.first()
+
+    override suspend fun setUserName(name: String) {
+        dataStore.edit { it[PreferencesKeys.USER_NAME] = name }
+    }
+
+    override suspend fun getUserNameOnce(): String =
+        dataStore.data.map { it[PreferencesKeys.USER_NAME] ?: "Guest User"}.first()
+
 }

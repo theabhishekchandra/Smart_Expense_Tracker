@@ -45,6 +45,7 @@ class AppPreferencesRepository @Inject constructor(
     override suspend fun setSyncFrequency(frequency: SyncFrequency) = dataSource.setSyncFrequency(frequency)
     override suspend fun setPushNotifications(enabled: Boolean) = dataSource.setPushNotifications(enabled)
     override suspend fun setEmailAlerts(enabled: Boolean) = dataSource.setEmailAlerts(enabled)
+    override suspend fun setUserName(name: String) = dataSource.setUserName(name)
 
     override suspend fun getLanguageOnce(): Language = dataSource.getLanguageOnce()
     override suspend fun getCurrencyOnce(): Currency = dataSource.getCurrencyOnce()
@@ -53,5 +54,6 @@ class AppPreferencesRepository @Inject constructor(
     override suspend fun getSyncFrequencyOnce(): SyncFrequency = dataSource.getSyncFrequencyOnce()
     override suspend fun getPushNotificationsOnce(): Boolean = dataSource.getPushNotificationsOnce()
     override suspend fun getEmailAlertsOnce(): Boolean = dataSource.getEmailAlertsOnce()
+    override suspend fun getUserNameOnce(): String = dataSource.getUserNameOnce()
 
 }

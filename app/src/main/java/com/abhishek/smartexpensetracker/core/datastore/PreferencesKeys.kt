@@ -25,4 +25,6 @@ object PreferencesKeys {
     val SYNC_FREQUENCY = stringPreferencesKey("sync_frequency") // Daily, Weekly, Monthly
     val PUSH_NOTIFICATIONS = booleanPreferencesKey("push_notifications")
     val EMAIL_ALERTS = booleanPreferencesKey("email_alerts")
+    val SMS_ALERTS = booleanPreferencesKey("sms_alerts")
+    val USER_NAME = stringPreferencesKey("user_name")
 }

@@ -1,6 +1,5 @@
 package com.abhishek.smartexpensetracker.ui.screens.home
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -31,6 +30,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
@@ -46,6 +46,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -63,7 +65,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.abhishek.smartexpensetracker.core.navigation.DefaultNavManager
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.abhishek.smartexpensetracker.core.datastore.Currency
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
@@ -76,9 +79,17 @@ import kotlin.math.roundToInt
 @Composable
 fun HomeScreen(
     navManager: NavManager? = null,
-    state: HomeUiState,
-    modifier: Modifier = Modifier
+    viewModel: HomeViewModel
 ) {
+//    val uiState by viewModel.homeUiStateA.collectAsState()
+    val state by viewModel.uiState.collectAsState()
+    val userName by viewModel.userName.collectAsState()
+    val currency by viewModel.currency.collectAsState()
+    val isPremium by viewModel.isPremium.collectAsState()
+    val isBusiness by viewModel.isBusiness.collectAsState()
+
+    val ctx = LocalContext.current
+
     BaseScaffold(
         navManager = navManager,
         currentRoute = ScreenRoutes.Home.route,
@@ -87,13 +98,13 @@ fun HomeScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Hello, ${state.userName}",
+                            text = state.userNameOrNull ?: "Guest",
                             style = MaterialTheme.typography.titleLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = if (state.isBusiness) "Business Dashboard" else "Track smart. Save smart.",
+                            text = if (isBusiness) "Business Dashboard" else "Track smart. Save smart.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -118,49 +129,53 @@ fun HomeScreen(
         },
         content = { padding ->
             LazyColumn(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Common sections
-                item { TodaySummaryCard(state) }
-                item { IncomeVsExpenseCard(state) }
 
-                if (!state.isBusiness) {
-                    // ---------- BUSINESS MODE ----------
-                    if (state.weeklyTrend.isNotEmpty()) {
-                        item { WeeklyTrendCard(state.weeklyTrend, state.currency) }
+                when(state){
+                    is HomeUiState.Loading -> {
+                        item { CircularProgressIndicator() }
                     }
-                    if (state.pendingApprovals.isNotEmpty()) {
-                        item { PendingApprovalsCard(state.pendingApprovals, state.currency) }
+                    is HomeUiState.Error -> {
+//                        item { ErrorCard((state as HomeUiState.Error).message) }
+                        Toast.makeText(ctx, (state as HomeUiState.Error).message, Toast.LENGTH_SHORT).show()
                     }
-                    if (state.staffLeaderboard.isNotEmpty()) {
-                        item { StaffLeaderboardCard(state.staffLeaderboard, state.currency) }
+                    is HomeUiState.BusinessDashboard -> {
+                        val s = state as HomeUiState.BusinessDashboard
+                        item { TodaySummaryCard(currency!!, s.totalExpense) }
+                        item { IncomeVsExpenseCard(currency!!, s.monthlyExpense, s.monthlyIncome) }
+                        if (s.weeklyTrend.isNotEmpty()) item { WeeklyTrendCard(s.weeklyTrend, currency) }
+                        if (s.approvalRecordList.isNotEmpty()) item { PendingApprovalsCard(s.approvalRecordList, currency) }
+                        if (s.staffSpendingList.isNotEmpty()) item { StaffLeaderboardCard(s.staffSpendingList, currency) }
+
                     }
-                } else {
-                    // ---------- PERSONAL MODE ----------
-                    if (state.categoryBreakdown.isNotEmpty()) {
-                        item { CategoryBreakdownCard(state.categoryBreakdown, state.currency) }
+                    is HomeUiState.PersonalDashboard -> {
+                        val s = state as HomeUiState.PersonalDashboard
+                        item { TodaySummaryCard(currency!!, s.totalExpense) }
+                        item { IncomeVsExpenseCard(currency!!, s.monthlyExpense, s.monthlyIncome) }
+                        if (s.categoryBreakdown.isNotEmpty()) item { CategoryBreakdownCard(s.categoryBreakdown, currency) }
+                        if (s.budgetProgressList.isNotEmpty()) item { BudgetsCard(s.budgetProgressList, currency) }
                     }
-                    if (state.budgets.isNotEmpty()) {
-                        item { BudgetsCard(state.budgets, state.currency) }
-                    }
+
                 }
 
                 // AI feedback (common for both modes)
-                if (state.aiTips.isNotEmpty() || state.improvements.isNotEmpty()) {
-                    item { AiFeedbackCard(state.aiTips, state.improvements, navManager) }
+                if (state.AITips?.isNotEmpty() == true || state.ImprovementIdeas?.isNotEmpty() == true) {
+                    item { AiFeedbackCard(state.AITips, state.ImprovementIdeas, navManager) }
                 }
 
                 // Recent activity (common)
                 if (state.recent.isNotEmpty()) {
-                    item { RecentActivityCard(state.recent, state.currency, navManager) }
+                    item { RecentActivityCard(state.recent, currency, navManager) }
                 }
 
 //                item { QuickActionsRow(navManager) }
                 item { Spacer(Modifier.height(64.dp)) }
+
             }
         }
     )
@@ -172,7 +187,7 @@ fun HomeScreen(
 @Composable
 private fun StaffLeaderboardCard(
     leaderboard: List<StaffSpending>,
-    currency: String
+    currency: Currency?
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -194,7 +209,7 @@ private fun StaffLeaderboardCard(
 
 
 @Composable
-private fun TodaySummaryCard(state: HomeUiState) {
+private fun TodaySummaryCard(currency: Currency, totalExpense: Double) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
@@ -203,7 +218,7 @@ private fun TodaySummaryCard(state: HomeUiState) {
             Text("Today’s spend", style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "${state.currency} ${state.todayTotal.roundToInt()}",
+                text = "${currency.symbol} ${totalExpense.roundToInt()}",
                 style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(Modifier.height(8.dp))
@@ -221,22 +236,22 @@ private fun TodaySummaryCard(state: HomeUiState) {
 }
 
 @Composable
-private fun IncomeVsExpenseCard(state: HomeUiState) {
+private fun IncomeVsExpenseCard(currency: Currency, monthExpense : Double, monthIncome : Double) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("This month", style = MaterialTheme.typography.titleMedium)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                StatPill(title = "Income", value = state.monthIncome, currency = state.currency)
-                StatPill(title = "Expense", value = state.monthExpense, currency = state.currency)
-                val net = state.monthIncome - state.monthExpense
-                StatPill(title = "Net", value = net, currency = state.currency)
+                StatPill(title = "Income", value = monthIncome, currency = currency)
+                StatPill(title = "Expense", value = monthExpense, currency = currency)
+                val net = monthIncome - monthExpense
+                StatPill(title = "Net", value = net, currency = currency)
             }
         }
     }
 }
 
 @Composable
-private fun StatPill(title: String, value: Double, currency: String) {
+private fun StatPill(title: String, value: Double, currency: Currency) {
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
@@ -245,12 +260,12 @@ private fun StatPill(title: String, value: Double, currency: String) {
         horizontalAlignment = Alignment.Start
     ) {
         Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text("₹ ${value.roundToInt()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text("${currency.symbol} ${value.roundToInt()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
     }
 }
 
 @Composable
-private fun WeeklyTrendCard(points: List<DailyPoint>, currency: String) {
+private fun WeeklyTrendCard(points: List<DailyPoint>, currency: Currency?) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
             Text("Weekly trend", style = MaterialTheme.typography.titleMedium)
@@ -265,7 +280,7 @@ private fun WeeklyTrendCard(points: List<DailyPoint>, currency: String) {
 }
 
 @Composable
-private fun CategoryBreakdownCard(slices: List<CategorySlice>, currency: String) {
+private fun CategoryBreakdownCard(slices: List<CategorySlice>, currency: Currency?) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Category breakdown", style = MaterialTheme.typography.titleMedium)
@@ -287,7 +302,7 @@ private fun CategoryBreakdownCard(slices: List<CategorySlice>, currency: String)
 }
 
 @Composable
-private fun BudgetsCard(items: List<BudgetProgress>, currency: String) {
+private fun BudgetsCard(items: List<BudgetProgress>, currency: Currency?) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Budgets", style = MaterialTheme.typography.titleMedium)
@@ -320,8 +335,8 @@ private fun BudgetsCard(items: List<BudgetProgress>, currency: String) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AiFeedbackCard(
-    tips: List<AiTip>,
-    improvements: List<ImprovementIdea>,
+    tips: List<AiTip>?,
+    improvements: List<ImprovementIdea>?,
     onAction: NavManager?
 ) {
     val ctx = LocalContext.current
@@ -338,7 +353,7 @@ private fun AiFeedbackCard(
             )
 
             // AI Tips Section
-            tips.forEach { tip ->
+            tips?.forEach { tip ->
                 ElevatedCard(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.elevatedCardColors(
@@ -356,7 +371,7 @@ private fun AiFeedbackCard(
             }
 
             // Suggestions Chips Section
-            if (improvements.isNotEmpty()) {
+            if (improvements?.isNotEmpty() == true) {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -389,8 +404,8 @@ private fun AiFeedbackCard(
 
 @Composable
 private fun PendingApprovalsCard(
-    items: List<ApprovalItem>,
-    currency: String,
+    items: List<ApprovalRecord>,
+    currency: Currency?,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -482,7 +497,7 @@ private fun PendingApprovalsCard(
 @Composable
 private fun RecentActivityCard(
     recent: List<ExpenseItem>,
-    currency: String,
+    currency: Currency?,
     onAction: NavManager?
 ) {
     Card(Modifier.fillMaxWidth()) {
@@ -677,7 +692,7 @@ private fun HomeScreenPreview() {
         )
     )
 
-    val sample = HomeUiState(
+    val sample = HomeUiStateA(
         userName = "Abhishek",
         todayTotal = 2350.0,
         monthExpense = 45210.0,
@@ -712,8 +727,8 @@ private fun HomeScreenPreview() {
             ImprovementIdea("Scan receipts", "Scan")
         ),
         pendingApprovals = listOf(
-            ApprovalItem("1", "Rohit", "Cab from client visit", 540.0, true),
-            ApprovalItem("2", "Sneha", "Lunch with vendor", 920.0, true)
+            ApprovalRecord("1", "Rohit", "Cab from client visit", 540.0, true),
+            ApprovalRecord("2", "Sneha", "Lunch with vendor", 920.0, true)
         ),
         recent = listOf(
             ExpenseItem("1", "Printer ink", "Utility", 780.0, "10:24 AM"),
@@ -726,7 +741,7 @@ private fun HomeScreenPreview() {
         true,
         false
     ){
-        HomeScreen(null,sample)
+        HomeScreen(null, hiltViewModel())
 //        PendingApprovalsCard(sample.pendingApprovals, sample.currency, )
 //        AiFeedbackCard(sample.aiTips, sample.improvements, null)
 

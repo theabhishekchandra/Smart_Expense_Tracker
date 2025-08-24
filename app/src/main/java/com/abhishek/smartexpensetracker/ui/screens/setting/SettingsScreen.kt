@@ -1,5 +1,7 @@
 package com.abhishek.smartexpensetracker.ui.screens.setting
 
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +43,21 @@ fun SettingsScreen(
     val exportFormats = ExportFormat.entries.map { it.value }
     val cloudProviders = SyncWith.entries.map { it.value }
     val syncFrequencies = SyncFrequency.entries.map { it.value }
+
+
+    val context = LocalContext.current
+    // Collect state flows
+    val loader by viewModel.loader.collectAsState()
+    val toastMessage = viewModel.toastMessage
+
+    // One-time toast effect
+    LaunchedEffect(toastMessage) {
+        toastMessage.collect { message ->
+            if (message.isNotBlank()) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -80,6 +98,13 @@ fun SettingsScreen(
             }
             SettingsDropdownItem(Icons.Default.CurrencyRupee, "Currency", prefs.currency.value, currencies) {
                 viewModel.setCurrency(Currency.fromValue(it))
+            }
+            // 🔹 Theme & Business Mode
+            SettingsToggleItem(Icons.Default.DarkMode, "Dark Mode", prefs.themeMode == ThemeType.DARK) {
+                viewModel.setTheme(if (it) ThemeType.DARK else ThemeType.LIGHT)
+            }
+            SettingsToggleItem(Icons.Default.Business, "Business Mode", prefs.isBusinessMode) {
+                viewModel.setBusinessMode(it)
             }
             Divider()
 
@@ -143,17 +168,19 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
 
-            /*// 🔹 Theme & Business Mode
-            // TODO: I can implement in future.
-            SettingsToggleItem(Icons.Default.DarkMode, "Dark Mode", prefs.themeMode == ThemeType.DARK) {
-                viewModel.setTheme(if (it) ThemeType.DARK else ThemeType.LIGHT)
-            }
-            SettingsToggleItem(Icons.Default.Business, "Business Mode", prefs.isBusinessMode) {
-                viewModel.setBusinessMode(it)
-            }
-*/
             if (isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+        }
+
+        if(loader) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
         }
     }

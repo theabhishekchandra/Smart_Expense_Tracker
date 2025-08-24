@@ -30,4 +30,7 @@ interface IPreferencesDataSource {
 
     suspend fun setEmailAlerts(enabled: Boolean)
     suspend fun getEmailAlertsOnce(): Boolean
+
+    suspend fun setUserName(name: String)
+    suspend fun getUserNameOnce(): String
 }

@@ -1,12 +1,10 @@
 package com.abhishek.smartexpensetracker.ui.screens.home
 
-import android.text.BoringLayout
 import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
 import com.abhishek.smartexpensetracker.ui.screens.staff.Role
-import com.abhishek.smartexpensetracker.ui.screens.staff.StaffExpense
 
 
-data class HomeUiState(
+data class HomeUiStateA(
     val userName: String = "Abhishek",
     val currency: String = "₹",
     val todayTotal: Double = 0.0,
@@ -18,9 +16,9 @@ data class HomeUiState(
     val budgets: List<BudgetProgress> = emptyList(),
     val aiTips: List<AiTip> = emptyList(),
     val improvements: List<ImprovementIdea> = emptyList(),
-    val pendingApprovals: List<ApprovalItem> = emptyList(),
+    val pendingApprovals: List<ApprovalRecord> = emptyList(),
     val recent: List<ExpenseItem> = emptyList(),
-    val staffLeaderboard : List<StaffSpending> = listOf<StaffSpending>()
+    val staffLeaderboard : List<StaffSpending> = emptyList()
 )
 
 data class StaffSpending(
@@ -41,7 +39,7 @@ data class StaffSpending(
 data class CategorySlice(val name: String, val amount: Double)
 
 
-data class DailyPoint(val day: String, val amount: Double) // e.g., [Mon..Sun]
+data class DailyPoint(val day: String, val amount: Double)
 
 
 data class BudgetProgress(
@@ -57,7 +55,7 @@ data class AiTip(val title: String, val detail: String)
 data class ImprovementIdea(val title: String, val actionLabel: String)
 
 
-data class ApprovalItem(
+data class ApprovalRecord(
     val id: String,
     val staffName: String,
     val title: String,

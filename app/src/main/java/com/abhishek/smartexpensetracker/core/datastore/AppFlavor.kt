@@ -47,13 +47,18 @@ enum class Language(val value: String) {
     }
 }
 
-enum class Currency(val value: String) {
-    RUPEE("Rupee"),
-    DOLLAR("Dollar"),
-    EURO("Euro");
-
+enum class Currency(val value: String, val symbol: String) {
+    RUPEE("Rupee", "₹"),
+    DOLLAR("Dollar", "$"),
+    POUND("Pound", "£"),
+    YEN("Yen", "¥"),
+    RUBLE("Ruble", "₽"),
+    BITCOIN("Bitcoin", "₿"),
+    EURO("Euro","€");
     companion object {
         fun fromValue(value: String?): Currency = Currency.entries.find { it.value == value } ?: RUPEE
+        fun fromSymbol(symbol: String?): Currency = Currency.entries.find { it.symbol == symbol } ?: RUPEE
+        fun getSymbol(currency: Currency): String = currency.symbol
     }
 }
 

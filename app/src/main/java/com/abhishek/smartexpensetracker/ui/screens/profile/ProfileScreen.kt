@@ -129,7 +129,8 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Toggles: Dark Mode + Business Mode
+                /*// Toggles: Dark Mode + Business Mode
+                // TODO: Dark or Business.
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -171,7 +172,7 @@ fun ProfileScreen(
 
                         }
                     }
-                }
+                }*/
 
                 Spacer(modifier = Modifier.height(20.dp))
 
