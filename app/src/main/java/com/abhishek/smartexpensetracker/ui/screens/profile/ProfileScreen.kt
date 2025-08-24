@@ -46,16 +46,6 @@ fun ProfileScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val prefs by settingsViewModel.userPreferences.collectAsState()
-
-
-    val isBusinessMode by remember { mutableStateOf(false) }
-    val isSystemDarkMode = isSystemInDarkTheme()
-    val isDarkMode by remember { mutableStateOf(isSystemDarkMode) }
-
-    LaunchedEffect(isDarkMode) {
-        //TODO : Change Dark mode or Light mode.
-    }
-
     BaseScaffold(
         topBar = {
             FinanceTopBar(

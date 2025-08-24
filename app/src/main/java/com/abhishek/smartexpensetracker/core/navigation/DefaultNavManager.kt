@@ -86,6 +86,32 @@ class DefaultNavManager @Inject constructor() : NavManager {
             Toast.makeText(navController?.context, "Navigation failed", Toast.LENGTH_SHORT).show()
         }
     }
+    override fun navigationForBottomBar(route: String){
+        try {
+            val currentRoute = navController?.currentBackStackEntry?.destination?.route
+
+            if (currentRoute == route) {
+                // Already on this screen, do nothing ✅ avoids white flicker
+                return
+            }
+            if (currentRoute == ScreenRoutes.Home.route) {
+                // Normal navigation from Home
+                navController?.navigate(route)
+            } else {
+                // From non-Home → clear stack back to Home, then go to destination
+                navController?.navigate(route) {
+                    popUpTo(ScreenRoutes.Home.route) {
+                        inclusive = false
+                    }
+                    launchSingleTop = true
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("NavManager", "Navigation failed for route: $route", e)
+            Toast.makeText(navController?.context, "Navigation failed", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun navigateWithArgs(route: String, args: Map<String, String>) {
         try {

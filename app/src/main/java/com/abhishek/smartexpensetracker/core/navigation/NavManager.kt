@@ -14,6 +14,9 @@ interface NavManager {
 
     // Optional NavOptions or Launch Modes
     fun navigateSingleTop(route: String)
+    fun navigationForBottomBar(route: String)
+
+
     // Add You can pass data as Bundle or Map
     // fun navigateWithArgs(route: String, args: Bundle)
     fun navigateWithArgs(route: String, args: Map<String, String>)
