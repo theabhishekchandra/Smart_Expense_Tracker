@@ -53,7 +53,7 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 5.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -67,7 +67,6 @@ fun SettingsScreen(
 
             // 🔹 App Preferences
             Text("App Preferences", style = MaterialTheme.typography.titleMedium)
-            SettingsToggleItem(Icons.Default.DarkMode, "Dark Mode", isDarkMode) { isDarkMode = it }
             SettingsDropdownItem(Icons.Default.Translate, "Language", selectedLanguage, languages) { selectedLanguage = it }
             SettingsDropdownItem(Icons.Default.CurrencyRupee, "Currency", selectedCurrency, currencies) { selectedCurrency = it }
             Divider()
@@ -111,6 +110,7 @@ fun SettingsScreen(
             SettingsItem(Icons.Default.Info, "About App", "Version 1.0.0")
             SettingsItem(Icons.Default.Share, "Share App", "Invite your friends")
             SettingsItem(Icons.Default.PrivacyTip, "Privacy & Terms", "Read our policies")
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -121,7 +121,7 @@ fun SettingsItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: S
         modifier = Modifier
             .fillMaxWidth()
             .clickable { }
-            .padding(12.dp),
+            .padding(horizontal = 12.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = title, modifier = Modifier.size(28.dp), tint = MaterialTheme.colorScheme.primary)
@@ -138,7 +138,7 @@ fun SettingsToggleItem(icon: androidx.compose.ui.graphics.vector.ImageVector, ti
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(12.dp),
+            .padding(horizontal = 12.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -150,6 +150,9 @@ fun SettingsToggleItem(icon: androidx.compose.ui.graphics.vector.ImageVector, ti
         Switch(checked = isChecked, onCheckedChange = onCheckedChange)
     }
 }
+
+    /*
+    * TODO : Add Language , Currency, Export Format, Sync With, Sync Frequency, Biometric Login, Push Notifications, Email Alerts*/
 
 @Composable
 fun SettingsDropdownItem(
@@ -165,7 +168,7 @@ fun SettingsDropdownItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { expanded = true }
-            .padding(12.dp),
+            .padding(horizontal = 12.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = title, modifier = Modifier.size(28.dp), tint = MaterialTheme.colorScheme.primary)

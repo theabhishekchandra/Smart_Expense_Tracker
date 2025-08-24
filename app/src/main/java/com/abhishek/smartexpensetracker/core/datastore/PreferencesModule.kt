@@ -16,11 +16,11 @@ object PreferencesModule {
     @Singleton
     fun provideUserPreferencesDataSource(
         @ApplicationContext context: Context
-    ): UserPreferencesDataSource = UserPreferencesDataSource(context)
+    ): AppPreferencesDataSource = AppPreferencesDataSource(context)
 
     @Provides
     @Singleton
     fun provideUserPreferencesRepository(
-        dataSource: UserPreferencesDataSource
-    ): UserPreferencesRepository = UserPreferencesRepository(dataSource)
+        dataSource: AppPreferencesDataSource
+    ): AppPreferencesRepository = AppPreferencesRepository(dataSource)
 }

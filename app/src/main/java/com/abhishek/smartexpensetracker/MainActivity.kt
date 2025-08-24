@@ -13,9 +13,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.abhishek.smartexpensetracker.core.datastore.BusinessMode
-import com.abhishek.smartexpensetracker.core.datastore.PreferencesKeys
 import com.abhishek.smartexpensetracker.core.datastore.ThemeType
-import com.abhishek.smartexpensetracker.core.datastore.UserPreferencesRepository
+import com.abhishek.smartexpensetracker.core.datastore.AppPreferencesRepository
 import com.abhishek.smartexpensetracker.core.navigation.AppNavGraph
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -27,7 +26,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var preferencesRepository: UserPreferencesRepository
+    lateinit var preferencesRepository: AppPreferencesRepository
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,28 +1,54 @@
 package com.abhishek.smartexpensetracker.ui.screens.subscription
 
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.abhishek.smartexpensetracker.core.datastore.AppPreferencesRepository
+import com.abhishek.smartexpensetracker.core.datastore.PremiumType
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
+import com.abhishek.smartexpensetracker.ui.screens.setting.SettingsViewModel
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
+import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubscriptionPlansScreen(
     navManager: NavManager? = null,
-    onSubscribeClick: (String) -> Unit // PlanId: "free", "monthly", "yearly"
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+
+    // Collect state flows
+    val loader by settingsViewModel.loader.collectAsState()
+    val toastMessage = settingsViewModel.toastMessage
+
+    // One-time toast effect
+    LaunchedEffect(toastMessage) {
+        toastMessage.collect { message ->
+            if (message.isNotBlank()) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             FinanceTopBar(
@@ -65,7 +91,7 @@ fun SubscriptionPlansScreen(
                     "✖ Export to Excel/CSV"
                 ),
                 isPremium = false,
-                onClick = { onSubscribeClick("free") }
+                onClick = { settingsViewModel.setPremium(PremiumType.BASIC,false) }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -83,7 +109,7 @@ fun SubscriptionPlansScreen(
                     "✔ Staff/Team expense tracking"
                 ),
                 isPremium = true,
-                onClick = { onSubscribeClick("monthly") }
+                onClick = { settingsViewModel.setPremium(PremiumType.MONTHLY,true)}
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -99,8 +125,19 @@ fun SubscriptionPlansScreen(
                 ),
                 isPremium = true,
                 highlight = true,
-                onClick = { onSubscribeClick("yearly") }
+                onClick = { settingsViewModel.setPremium(PremiumType.YEARLY,true) }
             )
+        }
+        // Loader Overlay
+        if (loader) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
         }
     }
 }
@@ -173,7 +210,7 @@ fun PlanCard(
 @Composable
 private fun PreviewSubscriptionPlansScreenLight() {
     SmartExpenseTrackerTheme(darkTheme = false, businessMode = false) {
-        SubscriptionPlansScreen(onSubscribeClick = {})
+        SubscriptionPlansScreen()
     }
 }
 
@@ -181,6 +218,6 @@ private fun PreviewSubscriptionPlansScreenLight() {
 @Composable
 private fun PreviewSubscriptionPlansScreenDark() {
     SmartExpenseTrackerTheme(darkTheme = true, businessMode = false) {
-        SubscriptionPlansScreen(onSubscribeClick = {})
+        SubscriptionPlansScreen()
     }
 }

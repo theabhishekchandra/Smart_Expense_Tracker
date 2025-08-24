@@ -24,6 +24,7 @@ import com.abhishek.smartexpensetracker.ui.screens.profile.ProfileScreen
 import com.abhishek.smartexpensetracker.ui.screens.report.ReportsScreen
 import com.abhishek.smartexpensetracker.ui.screens.report.ReportsViewModel
 import com.abhishek.smartexpensetracker.ui.screens.setting.SettingsScreen
+import com.abhishek.smartexpensetracker.ui.screens.setting.SettingsViewModel
 import com.abhishek.smartexpensetracker.ui.screens.subscription.SubscriptionPlansScreen
 
 fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
@@ -139,9 +140,13 @@ fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
         )
     }
 
-    composable(ScreenRoutes.Subscription.route){
+    composable(ScreenRoutes.Subscription.route){ navBackStackEntry ->
+
+        val viewModel : SettingsViewModel = hiltViewModel(navBackStackEntry)
+
         SubscriptionPlansScreen(
-            {it}
+            navManager = navManager,
+            settingsViewModel = viewModel
         )
     }
 

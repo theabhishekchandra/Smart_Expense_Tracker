@@ -13,8 +13,23 @@ enum class ThemeType(val value: String) {
     }
 }
 
-// BusinessMode.kt
+// BusinessMode
 sealed class BusinessMode {
     object Personal : BusinessMode()
     object Business : BusinessMode()
+}
+
+// PremiumType
+
+enum class PremiumType(val value: String) {
+    BASIC("basic"),
+    MONTHLY("monthly"),
+    YEARLY("yearly");
+}
+
+sealed class PaymentMode {
+    object Cash : PaymentMode()
+    object Card : PaymentMode()
+    object UPI : PaymentMode()
+    object NetBanking : PaymentMode()
 }

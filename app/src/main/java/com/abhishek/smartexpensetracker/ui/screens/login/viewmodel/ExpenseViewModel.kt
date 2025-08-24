@@ -1,17 +1,15 @@
 package com.abhishek.smartexpensetracker.ui.screens.login.viewmodel
 
 import android.util.Log
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abhishek.smartexpensetracker.core.datastore.ThemeType
-import com.abhishek.smartexpensetracker.core.datastore.UserPreferencesRepository
+import com.abhishek.smartexpensetracker.core.datastore.AppPreferencesRepository
 import com.abhishek.smartexpensetracker.data.model.DateFilter
 import com.abhishek.smartexpensetracker.data.model.Expense
 import com.abhishek.smartexpensetracker.data.model.ExpenseDM
 import com.abhishek.smartexpensetracker.data.model.ExpenseUiState
 import com.abhishek.smartexpensetracker.data.model.GroupMode
-import com.abhishek.smartexpensetracker.data.repository.ExpenseRepository
 import com.abhishek.smartexpensetracker.data.repository.IExpenseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -21,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ExpenseViewModel @Inject constructor(
     private val repo: IExpenseRepository,
-    private val repository: UserPreferencesRepository
+    private val repository: AppPreferencesRepository
 ) : ViewModel() {
 
     val isDark = repository.themeMode
