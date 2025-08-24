@@ -133,10 +133,12 @@ fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
         )
     }
 
-    composable(ScreenRoutes.Settings.route) {
+    composable(ScreenRoutes.Settings.route) { navBackStackEntry ->
+        val viewModel: SettingsViewModel = hiltViewModel(navBackStackEntry)
+
         SettingsScreen(
-            onBackClick = {},
-            navManager = navManager
+            navManager = navManager,
+            viewModel = viewModel
         )
     }
 

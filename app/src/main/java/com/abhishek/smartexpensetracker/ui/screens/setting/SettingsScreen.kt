@@ -5,122 +5,166 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.abhishek.smartexpensetracker.core.datastore.Currency
+import com.abhishek.smartexpensetracker.core.datastore.ExportFormat
+import com.abhishek.smartexpensetracker.core.datastore.Language
+import com.abhishek.smartexpensetracker.core.datastore.SyncFrequency
+import com.abhishek.smartexpensetracker.core.datastore.SyncWith
+import com.abhishek.smartexpensetracker.core.datastore.ThemeType
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
+import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
+import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onBackClick: () -> Unit = {},
-    navManager: NavManager? = null
+    navManager: NavManager? = null,
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    var isDarkMode by remember { mutableStateOf(false) }
-    var isNotificationEnabled by remember { mutableStateOf(true) }
+    val prefs by viewModel.userPreferences.collectAsState()
+    val isLoading by viewModel.loader.collectAsState()
 
-    // Dropdown selections
-    var selectedLanguage by remember { mutableStateOf("English") }
-    var selectedCurrency by remember { mutableStateOf("INR (₹)") }
-    var selectedExportFormat by remember { mutableStateOf("PDF") }
-    var selectedCloud by remember { mutableStateOf("Google Drive") }
-    var selectedSyncFrequency by remember { mutableStateOf("Weekly") }
-
-    val languages = listOf("English", "Hindi", "Spanish", "French")
-    val currencies = listOf("INR (₹)", "USD ($)", "EUR (€)", "GBP (£)")
-    val exportFormats = listOf("PDF", "Excel", "CSV")
-    val cloudProviders = listOf("Google Drive", "OneDrive", "App Server")
-    val syncFrequencies = listOf("Daily", "Weekly", "Monthly")
+    val languages = Language.entries.map { it.value }
+    val currencies = Currency.entries.map { it.value }
+    val exportFormats = ExportFormat.entries.map { it.value }
+    val cloudProviders = SyncWith.entries.map { it.value }
+    val syncFrequencies = SyncFrequency.entries.map { it.value }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Settings", fontSize = 20.sp) },
-                navigationIcon = {
-                    IconButton(onClick = { onBackClick() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
+            FinanceTopBar(
+                title = "Settings",
+                showBackButton = true,
+                showSearch = false,
+                showFilter = false,
+                showNotifications = false,
+                showMenu = false,
+                onBackClick = { navManager?.navigateBack() }
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 5.dp)
-                .fillMaxSize()
+                .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
             // 🔹 Account Section
             Text("Account", style = MaterialTheme.typography.titleMedium)
-            SettingsItem(Icons.Default.Person, "Edit Profile", "Change your name, email & picture")
-            SettingsItem(Icons.Default.Business, "Business Details", "Edit company name, GST, PAN, etc.")
+            SettingsItem(
+                Icons.Default.Person, "Edit Profile",
+                "Change your name, email & picture", { }
+            )
+            SettingsItem(Icons.Default.Business, "Business Details",
+                "Edit company name, GST, PAN, etc.", {}
+            )
             Divider()
 
             // 🔹 App Preferences
             Text("App Preferences", style = MaterialTheme.typography.titleMedium)
-            SettingsDropdownItem(Icons.Default.Translate, "Language", selectedLanguage, languages) { selectedLanguage = it }
-            SettingsDropdownItem(Icons.Default.CurrencyRupee, "Currency", selectedCurrency, currencies) { selectedCurrency = it }
+            SettingsDropdownItem(Icons.Default.Translate, "Language", prefs.language.value, languages) {
+                viewModel.setLanguage(Language.fromValue(it))
+            }
+            SettingsDropdownItem(Icons.Default.CurrencyRupee, "Currency", prefs.currency.value, currencies) {
+                viewModel.setCurrency(Currency.fromValue(it))
+            }
             Divider()
 
             // 🔹 Reports
             Text("Reports", style = MaterialTheme.typography.titleMedium)
-            SettingsDropdownItem(Icons.Default.Description, "Export Format", selectedExportFormat, exportFormats) { selectedExportFormat = it }
+            SettingsDropdownItem(Icons.Default.Description, "Export Format", prefs.exportFormat.value, exportFormats) {
+                viewModel.setExportFormat(ExportFormat.fromValue(it))
+            }
             Divider()
 
             // 🔹 Cloud Sync
             Text("Cloud Sync", style = MaterialTheme.typography.titleMedium)
-            SettingsDropdownItem(Icons.Default.Cloud, "Sync With", selectedCloud, cloudProviders) { selectedCloud = it }
-            SettingsDropdownItem(Icons.Default.Schedule, "Sync Frequency", selectedSyncFrequency, syncFrequencies) { selectedSyncFrequency = it }
+            SettingsDropdownItem(Icons.Default.Cloud, "Sync With", prefs.syncWith.value, cloudProviders) {
+                viewModel.setSyncWith(SyncWith.fromValue(it))
+            }
+            SettingsDropdownItem(Icons.Default.Schedule, "Sync Frequency", prefs.syncFrequency.value, syncFrequencies) {
+                viewModel.setSyncFrequency(SyncFrequency.fromValue(it))
+            }
             Divider()
 
             // 🔹 Security
             Text("Security", style = MaterialTheme.typography.titleMedium)
-            SettingsItem(Icons.Default.Lock, "Change Password", "Update your login password")
-            SettingsItem(Icons.Default.Fingerprint, "Biometric Login", "Use fingerprint or face unlock")
+            SettingsItem(Icons.Default.Lock, "Change Password",
+                "Update your login password",{}
+            )
+            SettingsItem(Icons.Default.Fingerprint, "Biometric Login",
+                "Use fingerprint or face unlock",{}
+            )
             Divider()
 
             // 🔹 Notifications
             Text("Notifications", style = MaterialTheme.typography.titleMedium)
-            SettingsToggleItem(Icons.Default.Notifications, "Push Notifications", isNotificationEnabled) { isNotificationEnabled = it }
-            SettingsItem(Icons.Default.Email, "Email Alerts", "Monthly expense reports")
+            SettingsToggleItem(Icons.Default.Notifications, "Push Notifications", prefs.pushNotifications) {
+                viewModel.setPushNotifications(it)
+            }
+            SettingsToggleItem(Icons.Default.Email, "Email Alerts", prefs.emailAlerts) {
+                viewModel.setEmailAlerts(it)
+            }
             Divider()
 
             // 🔹 Premium
             Text("Premium", style = MaterialTheme.typography.titleMedium)
-            SettingsItem(Icons.Default.Star, "Go Premium", "Unlock advanced features")
+            SettingsItem(Icons.Default.Star, "Go Premium",
+                "Unlock advanced features",{ navManager?.navigate(ScreenRoutes.Subscription.route)}
+            )
             Divider()
 
             // 🔹 Support
             Text("Support", style = MaterialTheme.typography.titleMedium)
-            SettingsItem(Icons.Default.Chat, "Chat Support", "Talk to our support team instantly")
-            SettingsItem(Icons.Default.Email, "Email Support", "support@smartexpense.com")
+            SettingsItem(Icons.AutoMirrored.Filled.Chat, "Chat Support",
+                "Talk to our support team instantly",{})
+            SettingsItem(Icons.Default.Email, "Email Support",
+                "support@smartexpense.com",{})
             Divider()
 
             // 🔹 About
             Text("About", style = MaterialTheme.typography.titleMedium)
-            SettingsItem(Icons.Default.Info, "About App", "Version 1.0.0")
-            SettingsItem(Icons.Default.Share, "Share App", "Invite your friends")
-            SettingsItem(Icons.Default.PrivacyTip, "Privacy & Terms", "Read our policies")
+            SettingsItem(Icons.Default.Info, "About App", "Version 1.0.0",{})
+            SettingsItem(Icons.Default.Share, "Share App", "Invite your friends",{})
+            SettingsItem(Icons.Default.PrivacyTip, "Privacy & Terms", "Read our policies",{})
             Spacer(modifier = Modifier.height(20.dp))
+
+
+            /*// 🔹 Theme & Business Mode
+            // TODO: I can implement in future.
+            SettingsToggleItem(Icons.Default.DarkMode, "Dark Mode", prefs.themeMode == ThemeType.DARK) {
+                viewModel.setTheme(if (it) ThemeType.DARK else ThemeType.LIGHT)
+            }
+            SettingsToggleItem(Icons.Default.Business, "Business Mode", prefs.isBusinessMode) {
+                viewModel.setBusinessMode(it)
+            }
+*/
+            if (isLoading) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
         }
     }
 }
 
 @Composable
-fun SettingsItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, description: String) {
+fun SettingsItem(icon: ImageVector, title: String, description: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable { onClick }
             .padding(horizontal = 12.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -134,7 +178,7 @@ fun SettingsItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: S
 }
 
 @Composable
-fun SettingsToggleItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun SettingsToggleItem(icon: ImageVector, title: String, isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -150,10 +194,6 @@ fun SettingsToggleItem(icon: androidx.compose.ui.graphics.vector.ImageVector, ti
         Switch(checked = isChecked, onCheckedChange = onCheckedChange)
     }
 }
-
-    /*
-    * TODO : Add Language , Currency, Export Format, Sync With, Sync Frequency, Biometric Login, Push Notifications, Email Alerts*/
-
 @Composable
 fun SettingsDropdownItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -196,6 +236,7 @@ fun SettingsDropdownItem(
 @Composable
 private fun PreviewSettingScreen() {
     SettingsScreen(
-        onBackClick = {},
+        null,
+        hiltViewModel()
     )
 }

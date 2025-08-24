@@ -25,6 +25,10 @@ enum class PremiumType(val value: String) {
     BASIC("basic"),
     MONTHLY("monthly"),
     YEARLY("yearly");
+
+    companion object {
+        fun fromValue(value: String?): PremiumType = PremiumType.entries.find { it.value == value } ?: BASIC
+    }
 }
 
 sealed class PaymentMode {
@@ -33,3 +37,53 @@ sealed class PaymentMode {
     object UPI : PaymentMode()
     object NetBanking : PaymentMode()
 }
+
+enum class Language(val value: String) {
+    HINDI("Hindi"),
+    ENGLISH("English");
+
+    companion object {
+        fun fromValue(value: String?): Language = Language.entries.find { it.value == value } ?: ENGLISH
+    }
+}
+
+enum class Currency(val value: String) {
+    RUPEE("Rupee"),
+    DOLLAR("Dollar"),
+    EURO("Euro");
+
+    companion object {
+        fun fromValue(value: String?): Currency = Currency.entries.find { it.value == value } ?: RUPEE
+    }
+}
+
+enum class ExportFormat(val value: String) {
+    PDF("PDF"),
+    CSV("CSV"),
+    EXCEL("Excel");
+
+    companion object {
+        fun fromValue(value: String?): ExportFormat = ExportFormat.entries.find { it.value == value } ?: PDF
+    }
+}
+
+enum class SyncWith(val value: String) {
+    GOOGLE_DRIVE("Google Drive"),
+    APP_DRIVE("App Drive"),
+    ONE_DRIVE("OneDrive");
+
+    companion object {
+        fun fromValue(value: String?): SyncWith = SyncWith.entries.find { it.value == value } ?: GOOGLE_DRIVE
+    }
+}
+
+enum class SyncFrequency(val value: String) {
+    DAILY("Daily"),
+    WEEKLY("Weekly"),
+    MONTHLY("Monthly");
+
+    companion object {
+        fun fromValue(value: String?): SyncFrequency = SyncFrequency.entries.find { it.value == value } ?: DAILY
+    }
+}
+
