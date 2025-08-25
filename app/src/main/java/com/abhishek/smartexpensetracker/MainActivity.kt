@@ -15,11 +15,13 @@ import androidx.compose.ui.Modifier
 import com.abhishek.smartexpensetracker.core.datastore.BusinessMode
 import com.abhishek.smartexpensetracker.core.datastore.ThemeType
 import com.abhishek.smartexpensetracker.core.datastore.AppPreferencesRepository
+import com.abhishek.smartexpensetracker.core.datastore.PremiumType
 import com.abhishek.smartexpensetracker.core.navigation.AppNavGraph
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import com.abhishek.smartexpensetracker.core.voice.VoiceManager
+import com.abhishek.smartexpensetracker.ui.theme.AppFlavor
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -36,10 +38,25 @@ class MainActivity : ComponentActivity() {
             // Collect theme + business mode directly
             val themeMode by preferencesRepository.themeMode.collectAsState(initial = ThemeType.LIGHT)
             val businessMode by preferencesRepository.businessMode.collectAsState(initial = false)
+            val premiumType by preferencesRepository.premiumTypeFlow.collectAsState(initial = PremiumType.BASIC)
+
+            val appFlavor = when(businessMode){
+                businessMode -> when(premiumType){
+                    PremiumType.BASIC -> AppFlavor.BUSINESS_BASIC
+                    PremiumType.MONTHLY -> AppFlavor.BUSINESS_PREMIUM
+                    PremiumType.YEARLY -> AppFlavor.BUSINESS_PREMIUM
+                }
+                else -> when(premiumType){
+                    PremiumType.BASIC -> AppFlavor.PERSONAL_BASIC
+                    PremiumType.MONTHLY -> AppFlavor.PERSONAL_PREMIUM
+                    PremiumType.YEARLY -> AppFlavor.PERSONAL_PREMIUM
+                }
+            }
+
 
             SmartExpenseTrackerTheme(
                 darkTheme = themeMode == ThemeType.DARK,
-                businessMode = businessMode is BusinessMode.Business
+                appFlavor = appFlavor,
             ) {
 //                AppSetup()
                 AppNavGraph()

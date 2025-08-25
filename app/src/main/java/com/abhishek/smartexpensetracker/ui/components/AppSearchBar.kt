@@ -96,7 +96,7 @@ private fun AppSearchBarPreview() {
 
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
         Surface {
             AppSearchBar(

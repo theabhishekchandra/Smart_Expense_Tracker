@@ -44,7 +44,6 @@ fun AppButton(
 private fun AppButtonPreview() {
     SmartExpenseTrackerTheme(
         true,
-        false
     ) {
         AppButton(
             text = "Button",

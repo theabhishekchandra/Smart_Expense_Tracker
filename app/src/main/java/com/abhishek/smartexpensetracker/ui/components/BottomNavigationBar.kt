@@ -96,7 +96,7 @@ data class BottomNavItem(
 private fun BottomNavigationBarLightPreview() {
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
     BottomNavigationBar(
             selectedRoute = ScreenRoutes.Home.route,
@@ -110,7 +110,7 @@ private fun BottomNavigationBarLightPreview() {
 private fun BottomNavigationBarDarkPreview() {
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
         BottomNavigationBar(
             selectedRoute = ScreenRoutes.Home.route,

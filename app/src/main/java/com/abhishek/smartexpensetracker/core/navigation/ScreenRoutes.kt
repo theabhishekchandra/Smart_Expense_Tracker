@@ -58,6 +58,9 @@ sealed class ScreenRoutes(val route: String) {
 
     // Profile & Settings
     object Profile : ScreenRoutes(RoutesConst.PROFILE_SCREEN)
+    object EditProfile : ScreenRoutes(RoutesConst.EDIT_PROFILE_SCREEN)
+    object BusinessDetails : ScreenRoutes(RoutesConst.BUSINESS_DETAILS_SCREEN)
+    object EditBusinessDetails : ScreenRoutes(RoutesConst.EDIT_BUSINESS_DETAILS_SCREEN)
     object Settings : ScreenRoutes(RoutesConst.SETTINGS_SCREEN)
     object Backup : ScreenRoutes(RoutesConst.BACKUP_SCREEN)
     object Subscription : ScreenRoutes(RoutesConst.SUBSCRIPTION_SCREEN)

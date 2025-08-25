@@ -74,7 +74,7 @@ fun TextStylesPreview_Light() {
 
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
         TextStylesPreview()
     }
@@ -85,7 +85,7 @@ fun TextStylesPreview_Light() {
 fun TextStylesPreview_Dark() {
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
         TextStylesPreview()
     }

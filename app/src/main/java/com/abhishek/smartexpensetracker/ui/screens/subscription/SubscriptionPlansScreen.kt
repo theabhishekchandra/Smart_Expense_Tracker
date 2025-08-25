@@ -209,7 +209,7 @@ fun PlanCard(
 @Preview(showBackground = true)
 @Composable
 private fun PreviewSubscriptionPlansScreenLight() {
-    SmartExpenseTrackerTheme(darkTheme = false, businessMode = false) {
+    SmartExpenseTrackerTheme(darkTheme = false, ) {
         SubscriptionPlansScreen()
     }
 }
@@ -217,7 +217,7 @@ private fun PreviewSubscriptionPlansScreenLight() {
 @Preview(showBackground = true)
 @Composable
 private fun PreviewSubscriptionPlansScreenDark() {
-    SmartExpenseTrackerTheme(darkTheme = true, businessMode = false) {
+    SmartExpenseTrackerTheme(darkTheme = true, ) {
         SubscriptionPlansScreen()
     }
 }

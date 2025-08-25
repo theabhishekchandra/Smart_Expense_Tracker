@@ -71,7 +71,7 @@ fun BottomBarButton(
 private fun ButtonPreview() {
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
         BottomBarButton(
             onFirstClick = {},

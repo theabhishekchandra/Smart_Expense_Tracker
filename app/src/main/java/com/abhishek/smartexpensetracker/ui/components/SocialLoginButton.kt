@@ -78,7 +78,7 @@ fun SocialLoginButton(
 private fun SocialLoginButtonPreview() {
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
         SocialLoginButton(
             label = "Login with Google",

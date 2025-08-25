@@ -37,6 +37,8 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { _toastMessage.emit("Error: ${exception.localizedMessage}") }
         _loader.value = false
     }
+    val isPremium = appPref.isPremiumFlow
+    val premiumType = appPref.premiumTypeFlow
 
     // Combine all preferences into a single state
     val userPreferences: StateFlow<UserPreferences> =

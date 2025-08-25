@@ -739,7 +739,7 @@ private fun HomeScreenPreview() {
     )
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
         HomeScreen(null, hiltViewModel())
 //        PendingApprovalsCard(sample.pendingApprovals, sample.currency, )

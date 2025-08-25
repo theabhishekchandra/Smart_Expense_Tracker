@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +60,10 @@ fun SettingsScreen(
         }
     }
 
+    fun showToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
     Scaffold(
         topBar = {
             FinanceTopBar(
@@ -84,12 +89,12 @@ fun SettingsScreen(
             Text("Account", style = MaterialTheme.typography.titleMedium)
             SettingsItem(
                 Icons.Default.Person, "Edit Profile",
-                "Change your name, email & picture", { }
+                "Change your name, email & picture", { navManager?.navigate(ScreenRoutes.EditProfile.route)}
             )
             SettingsItem(Icons.Default.Business, "Business Details",
-                "Edit company name, GST, PAN, etc.", {}
+                "Edit company name, GST, PAN, etc.", {navManager?.navigate(ScreenRoutes.EditBusinessDetails.route)}
             )
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             // 🔹 App Preferences
             Text("App Preferences", style = MaterialTheme.typography.titleMedium)
@@ -106,14 +111,14 @@ fun SettingsScreen(
             SettingsToggleItem(Icons.Default.Business, "Business Mode", prefs.isBusinessMode) {
                 viewModel.setBusinessMode(it)
             }
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             // 🔹 Reports
             Text("Reports", style = MaterialTheme.typography.titleMedium)
             SettingsDropdownItem(Icons.Default.Description, "Export Format", prefs.exportFormat.value, exportFormats) {
                 viewModel.setExportFormat(ExportFormat.fromValue(it))
             }
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             // 🔹 Cloud Sync
             Text("Cloud Sync", style = MaterialTheme.typography.titleMedium)
@@ -123,17 +128,22 @@ fun SettingsScreen(
             SettingsDropdownItem(Icons.Default.Schedule, "Sync Frequency", prefs.syncFrequency.value, syncFrequencies) {
                 viewModel.setSyncFrequency(SyncFrequency.fromValue(it))
             }
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             // 🔹 Security
             Text("Security", style = MaterialTheme.typography.titleMedium)
             SettingsItem(Icons.Default.Lock, "Change Password",
-                "Update your login password",{}
+                "Update your login password",{
+                    // TODO: Implement password change
+                    showToast("Coming Soon...")
+                }
             )
             SettingsItem(Icons.Default.Fingerprint, "Biometric Login",
-                "Use fingerprint or face unlock",{}
+                "Use fingerprint or face unlock",{
+                    // TODO: Implement biometric login
+                    showToast("Coming Soon...")}
             )
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             // 🔹 Notifications
             Text("Notifications", style = MaterialTheme.typography.titleMedium)
@@ -143,28 +153,38 @@ fun SettingsScreen(
             SettingsToggleItem(Icons.Default.Email, "Email Alerts", prefs.emailAlerts) {
                 viewModel.setEmailAlerts(it)
             }
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             // 🔹 Premium
             Text("Premium", style = MaterialTheme.typography.titleMedium)
             SettingsItem(Icons.Default.Star, "Go Premium",
                 "Unlock advanced features",{ navManager?.navigate(ScreenRoutes.Subscription.route)}
             )
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             // 🔹 Support
             Text("Support", style = MaterialTheme.typography.titleMedium)
             SettingsItem(Icons.AutoMirrored.Filled.Chat, "Chat Support",
-                "Talk to our support team instantly",{})
+                "Talk to our support team instantly",{
+                    // TODO: Implement chat support
+                    showToast("Coming Soon...")})
             SettingsItem(Icons.Default.Email, "Email Support",
-                "support@smartexpense.com",{})
-            Divider()
+                "support@smartexpense.com",{
+                    // TODO: Implement Email Support.
+                    showToast("Coming Soon...")})
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             // 🔹 About
             Text("About", style = MaterialTheme.typography.titleMedium)
-            SettingsItem(Icons.Default.Info, "About App", "Version 1.0.0",{})
-            SettingsItem(Icons.Default.Share, "Share App", "Invite your friends",{})
-            SettingsItem(Icons.Default.PrivacyTip, "Privacy & Terms", "Read our policies",{})
+            SettingsItem(Icons.Default.PrivacyTip, "Privacy & Terms", "Read our policies",{
+                //TODO: Implement privacy & terms
+                showToast("Coming Soon...")})
+            SettingsItem(Icons.Default.Info, "About App", "Version 1.0.0",{
+                // TODO: Implement about app
+                showToast("Coming Soon...")})
+            SettingsItem(Icons.Default.Share, "Share App", "Invite your friends",{
+                // TODO: Implement share app
+                showToast("Coming Soon...")})
             Spacer(modifier = Modifier.height(20.dp))
 
 
@@ -191,7 +211,7 @@ fun SettingsItem(icon: ImageVector, title: String, description: String, onClick:
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick }
+            .clickable { onClick() }
             .padding(horizontal = 12.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

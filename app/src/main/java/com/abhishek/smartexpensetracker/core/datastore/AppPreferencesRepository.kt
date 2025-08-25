@@ -32,11 +32,7 @@ class AppPreferencesRepository @Inject constructor(
     override suspend fun setPremiumType(type: PremiumType) = dataSource.setPremiumType(type)
 
     override suspend fun setPremium(enabled: Boolean, type: PremiumType) {
-        if (enabled) {
-            type.let { dataSource.setPremiumType(it) }
-        } else {
-            dataSource.setPremiumType(type)
-        }
+        type.let { dataSource.setPremium(enabled,type) }
     }
     override suspend fun setLanguage(language: Language) = dataSource.setLanguage(language)
     override suspend fun setCurrency(currency: Currency) = dataSource.setCurrency(currency)

@@ -23,9 +23,9 @@ class AppPreferencesDataSource @Inject constructor(
     private val dataStore = context.dataStore
 
     // ----- Flow Observers -----
-    val isPremium: Flow<Boolean> = dataStore.data.map { prefs ->
-        prefs[IS_PREMIUM] ?: false
-    }
+    val isPremium: Flow<Boolean> = dataStore.data
+        .map { prefs -> prefs[IS_PREMIUM] ?: false }
+
 
     val premiumType: Flow<PremiumType> = dataStore.data.map { prefs ->
         PremiumType.fromValue(prefs[PreferencesKeys.PREMIUM_TYPE])

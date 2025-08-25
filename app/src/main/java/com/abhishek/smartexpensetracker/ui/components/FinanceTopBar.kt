@@ -74,7 +74,7 @@ fun FinanceTopBar(
 private fun PreviewFinanceTopBarWithDarkMode() {
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
         FinanceTopBar(
             title = "Reports",
@@ -92,7 +92,7 @@ private fun PreviewFinanceTopBarWithDarkMode() {
 private fun PreviewFinanceTopBarWithLightMode() {
     SmartExpenseTrackerTheme(
         true,
-        false
+
     ){
     FinanceTopBar(
             title = "Expenses",

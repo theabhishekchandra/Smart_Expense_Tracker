@@ -1,5 +1,7 @@
 package com.abhishek.smartexpensetracker.ui.screens.profile
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,11 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.abhishek.smartexpensetracker.core.datastore.PremiumType
 import com.abhishek.smartexpensetracker.core.datastore.ThemeType
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
@@ -38,12 +42,24 @@ fun ProfileScreen(
     name: String,
     email: String,
     profileImage: String?,
-    isPremium: Boolean,
     onEditProfile: () -> Unit,
     onEditBusinessDetails: () -> Unit,
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val prefs by settingsViewModel.userPreferences.collectAsState()
+    val isPremium by settingsViewModel.isPremium.collectAsState(initial = false)
+    val premiumType by settingsViewModel.premiumType.collectAsState(initial = PremiumType.BASIC)
+
+    val loader by settingsViewModel.loader.collectAsState()
+    val toastMessage by settingsViewModel.toastMessage.collectAsState(initial = "")
+
+    LaunchedEffect(toastMessage) {
+        if (toastMessage.isNotEmpty()) {
+            Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     BaseScaffold(
         topBar = {
             FinanceTopBar(
@@ -102,19 +118,19 @@ fun ProfileScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = if (isPremium) Color(0xFF4CAF50) else Color(0xFF03A9F4))
+                    colors = CardDefaults.cardColors(containerColor = if (premiumType != PremiumType.BASIC) Color(0xFF4CAF50) else Color(0xFF03A9F4))
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            if (isPremium) "🌟 Premium User" else "Upgrade to Premium",
+                            if (premiumType != PremiumType.BASIC) "🌟 Premium User" else "Upgrade to Premium",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-                        if (!isPremium) {
+                        if (premiumType == PremiumType.BASIC) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(
                                 onClick = { navManager?.navigateSingleTop(ScreenRoutes.Subscription.route) },
@@ -260,7 +276,6 @@ private fun PreviewProfileScreen() {
         name = "Abhishek Chandra",
         email = "ac927920@gmail.com",
         profileImage = "https://via.placeholder.com/150",
-        isPremium = false,
         onEditProfile = {},
         onEditBusinessDetails = {}
     )

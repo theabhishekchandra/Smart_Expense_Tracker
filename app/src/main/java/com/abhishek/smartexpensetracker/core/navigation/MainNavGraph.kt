@@ -6,12 +6,14 @@ import androidx.navigation.compose.composable
 import com.abhishek.smartexpensetracker.data.model.ExpenseDM
 import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
 import com.abhishek.smartexpensetracker.data.model.UserRole
+import com.abhishek.smartexpensetracker.ui.screens.business.EditBusinessDetailsScreen
 import com.abhishek.smartexpensetracker.ui.screens.expense.AddExpenseScreen
 import com.abhishek.smartexpensetracker.ui.screens.expense.ExpenseDetailScreen
 import com.abhishek.smartexpensetracker.ui.screens.home.HomeScreen
 import com.abhishek.smartexpensetracker.ui.screens.home.HomeViewModel
 import com.abhishek.smartexpensetracker.ui.screens.listscreen.ExpenseListScreen
 import com.abhishek.smartexpensetracker.ui.screens.login.viewmodel.ExpenseViewModel
+import com.abhishek.smartexpensetracker.ui.screens.profile.EditProfileScreen
 import com.abhishek.smartexpensetracker.ui.screens.profile.ProfileScreen
 import com.abhishek.smartexpensetracker.ui.screens.setting.SettingsScreen
 import com.abhishek.smartexpensetracker.ui.screens.setting.SettingsViewModel
@@ -67,19 +69,6 @@ fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
         )
     }
 
-
-    composable(ScreenRoutes.Profile.route) {
-        ProfileScreen(
-            navManager = navManager,
-            name = "Abhishek Chandra",
-            email = "ac927920@gmail.com",
-            profileImage = "https://via.placeholder.com/150",
-            isPremium = false,
-            onEditProfile = {},
-            onEditBusinessDetails = {}
-        )
-    }
-
     composable(ScreenRoutes.Settings.route) { navBackStackEntry ->
         val viewModel: SettingsViewModel = hiltViewModel(navBackStackEntry)
 
@@ -96,6 +85,49 @@ fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
         SubscriptionPlansScreen(
             navManager = navManager,
             settingsViewModel = viewModel
+        )
+    }
+
+    // Profile Section
+
+
+    composable(ScreenRoutes.Profile.route) {
+        ProfileScreen(
+            navManager = navManager,
+            name = "Abhishek Chandra",
+            email = "ac927920@gmail.com",
+            profileImage = "https://via.placeholder.com/150",
+            onEditProfile = {},
+            onEditBusinessDetails = {}
+        )
+    }
+
+    composable(ScreenRoutes.EditProfile.route) {
+        EditProfileScreen(
+            navManager = navManager,
+            currentName = "Abhishek Chandra",
+            currentEmail = "ac927920@gmail.com",
+            currentProfileImage = "https://via.placeholder.com/150",
+            onSave = { name, email, profileUrl, phone, dob, gender, currency ->
+                // Handle save logic here
+            },
+            onCancel = {
+                // Handle cancel logic here
+            }
+        )
+    }
+
+    // Business Section
+    composable(ScreenRoutes.EditBusinessDetails.route) {
+        EditBusinessDetailsScreen(
+            navManager = navManager,
+            currentBusinessName = "Smart Traders",
+            currentOwnerName = "Abhishek Chandra",
+            currentBusinessLogo = "https://via.placeholder.com/150",
+            currentEmail = "business@example.com",
+            currentPhone = "+91 9876543210",
+            onSave = { _, _, _, _, _, _, _ -> },
+            onCancel = {}
         )
     }
 
