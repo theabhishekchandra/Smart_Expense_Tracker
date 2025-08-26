@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.abhishek.smartexpensetracker.ui.screens.expense
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.abhishek.smartexpensetracker.data.model.UserRole
 import com.abhishek.smartexpensetracker.ui.components.ReceiptUploader
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddExpenseScreen(
@@ -31,8 +32,9 @@ fun AddExpenseScreen(
     var receiptUri by remember { mutableStateOf<String?>(null) }
     var staffAssigned by remember { mutableStateOf("") }
     var projectAssigned by remember { mutableStateOf("") }
+    var assignToSelf by remember { mutableStateOf(true) }
 
-    val categoryList = listOf("Staff", "Travel", "Food", "Utility","Other")
+    val categoryList = listOf("Staff", "Travel", "Food", "Utility", "Other")
     var expanded by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -117,15 +119,14 @@ fun AddExpenseScreen(
                         }
                     }
                 }
+
                 if (category == "Other") {
                     Spacer(modifier = Modifier.height(12.dp))
-
-                    // Notes Field
                     OutlinedTextField(
                         value = notes,
                         onValueChange = { if (it.length <= 100) notes = it },
                         label = { Text("Your Category") },
-                        placeholder = { Text("Add notes (max 100 chars)") },
+                        placeholder = { Text("Enter custom category") },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -144,25 +145,16 @@ fun AddExpenseScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Receipt Upload
-                ReceiptUploader(uri = receiptUri, onUpload = { launcher.launch("image/*") },{ receiptUri = null })
-
-//                Button(
-//                    onClick = { /* TODO: Pick image / take photo */ },
-//                    modifier = Modifier.fillMaxWidth(),
-//                    shape = RoundedCornerShape(8.dp)
-//                ) {
-//                    Text(
-//                        text = receiptUri ?: "Upload Receipt",
-//                        textAlign = TextAlign.Center,
-//                        modifier = Modifier.fillMaxWidth()
-//                    )
-//                }
+                ReceiptUploader(
+                    uri = receiptUri,
+                    onUpload = { launcher.launch("image/*") },
+                    onRemove = { receiptUri = null }
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Business mode fields
                 if (isBusinessMode) {
-                    // Project / Department
                     OutlinedTextField(
                         value = projectAssigned,
                         onValueChange = { projectAssigned = it },
@@ -172,14 +164,38 @@ fun AddExpenseScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Admin: assign to staff
+                    // Admin only: self or assign to staff
                     if (userRole == UserRole.ADMIN) {
-                        OutlinedTextField(
-                            value = staffAssigned,
-                            onValueChange = { staffAssigned = it },
-                            label = { Text("Assign to Staff (optional)") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Assign To:", style = MaterialTheme.typography.bodyLarge)
+                            Row {
+                                FilterChip(
+                                    selected = assignToSelf,
+                                    onClick = { assignToSelf = true },
+                                    label = { Text("Self") }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                FilterChip(
+                                    selected = !assignToSelf,
+                                    onClick = { assignToSelf = false },
+                                    label = { Text("Staff") }
+                                )
+                            }
+                        }
+
+                        if (!assignToSelf) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            OutlinedTextField(
+                                value = staffAssigned,
+                                onValueChange = { staffAssigned = it },
+                                label = { Text("Staff Name/ID") },
+                                placeholder = { Text("Enter staff to assign") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
 
@@ -189,7 +205,7 @@ fun AddExpenseScreen(
                 Button(
                     onClick = {
                         if (title.isNotBlank() && amount.toDoubleOrNull() != null && amount.toDouble() > 0) {
-                            // TODO: call ViewModel to save expense
+                            // TODO: call ViewModel to save expense with all fields
                         } else {
                             // TODO: show error snackbar/toast
                         }
