@@ -1,58 +1,56 @@
 package com.abhishek.smartexpensetracker.ui.screens.report
 
-import android.widget.Toast
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.unit.sp
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.data.model.Expense
-import com.abhishek.smartexpensetracker.core.utils.DateUtils
-import com.abhishek.smartexpensetracker.core.utils.ExportUtils
 import com.abhishek.smartexpensetracker.data.model.UserRole
 import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import java.text.SimpleDateFormat
-import java.util.*
 
 
+/* ---------------- Screen ---------------- */
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ReportsScreen(
     navManager: NavManager?,
     isBusinessMode: Boolean,
     userRole: UserRole,
-    reportsViewModel: ReportsViewModel = hiltViewModel()
+    reportsViewModel: ReportsViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
     val uiState by reportsViewModel.reportsState.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
+
+    var searchQuery by remember { mutableStateOf("") }
+    var chartMode by remember { mutableStateOf(true) } // toggle between table & charts
 
     BaseScaffold(
         navManager = navManager,
@@ -60,71 +58,201 @@ fun ReportsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Reports & Analytics") },
+                navigationIcon = {
+                    IconButton(onClick = { navManager?.navigateBack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
                 actions = {
-                    IconButton(onClick = {/* reportsViewModel.exportReport() */}) {
+                    IconButton(onClick = { reportsViewModel.exportReport() }) {
                         Icon(Icons.Default.FileDownload, contentDescription = "Export Report")
+                    }
+                    IconButton(onClick = { /* Share Logic */ }) {
+                        Icon(Icons.Default.Share, contentDescription = "Share Report")
                     }
                 }
             )
         },
-        /*floatingActionButton = {
-            if (!isBusinessMode || userRole == UserRole.ADMIN || userRole == UserRole.ENTRY_ONLY) {
-                FloatingActionButton(
-                    onClick = { *//*reportsViewModel.onAddExpenseClick()*//* },
-                    shape = CircleShape
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Expense")
-                }
-            }
-        },*/
-        content =  { padding ->
-            Column(
+        content = { padding ->
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .verticalScroll(rememberScrollState())
             ) {
-                // 1. Filters
-                FiltersSection(
-                    isBusinessMode = isBusinessMode,
-                    userRole = userRole,
-                    selectedPeriod = uiState.selectedPeriod,
-                    selectedStaff = uiState.selectedStaff,
-                    onPeriodSelected = { reportsViewModel.selectPeriod(it) },
-                    onStaffSelected = { reportsViewModel.selectStaff(it) }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 2. Charts
-                ReportsChartsSection(
-                    uiState = uiState
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 3. AI Insights
-                AIInsightsSection(aiInsights = uiState.aiInsights)
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 4. Export button (alternative place)
-                Button(
-                    onClick = { /*reportsViewModel.exportReport()*/ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Icon(Icons.Default.Share, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Export Report")
+                /* 🔹 Search & Quick Filter */
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+                        Spacer(Modifier.width(8.dp))
+                        BasicTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            textStyle = TextStyle(fontSize = 16.sp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(
+                                    Color.LightGray.copy(alpha = 0.3f),
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(10.dp),
+                            decorationBox = { innerTextField ->
+                                if (searchQuery.isEmpty()) {
+                                    Text("Search expenses...", color = Color.Gray, fontSize = 14.sp)
+                                }
+                                innerTextField()
+                            }
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                /* 🔹 Filters */
+                item {
+                    FiltersSection(
+                        isBusinessMode = isBusinessMode,
+                        userRole = userRole,
+                        selectedPeriod = uiState.selectedPeriod,
+                        selectedStaff = uiState.selectedStaff,
+                        onPeriodSelected = { reportsViewModel.selectPeriod(it) },
+                        onStaffSelected = { reportsViewModel.selectStaff(it) }
+                    )
+                }
+
+                /* 🔹 Toggle View: Chart / List */
+                item {
+                    Spacer(Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("View Mode", style = MaterialTheme.typography.titleMedium)
+                        IconButton(onClick = { chartMode = !chartMode }) {
+                            if (chartMode) Icon(Icons.Default.List, "Switch to List")
+                            else Icon(Icons.Default.PieChart, "Switch to Charts")
+                        }
+                    }
+                }
+
+                /* 🔹 Charts / Table */
+                if (chartMode) {
+                    item {
+                        ReportsChartsSection(uiState)
+                    }
+                } else {
+                    item {
+                        ExpenseTableSection(uiState.expenses, searchQuery)
+                    }
+                }
+
+                /* 🔹 AI Insights */
+                if (uiState.aiInsights.isNotEmpty()) {
+                    item {
+                        Spacer(Modifier.height(16.dp))
+                        AIInsightsSection(uiState.aiInsights)
+                    }
+                }
+
+                item { Spacer(Modifier.height(32.dp)) }
             }
         }
     )
 }
+
+@Composable
+fun ExpenseTableSection(expenses: List<Expense>, searchQuery: String) {
+    val filtered = expenses.filter {
+        it.title.contains(searchQuery, ignoreCase = true) ||
+                it.category.contains(searchQuery, ignoreCase = true)
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            filtered.forEach { expense ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(expense.title, style = MaterialTheme.typography.titleMedium)
+                        Text("₹${expense.amount}", style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            expense.category,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                        Text(
+                            text = "${expense.timestamp}", // ✅ fixed: don’t multiply timestamp
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    }
+
+                    Text(
+                        "By: ${expense.title}",
+                        style = MaterialTheme.typography.bodySmall.copy(color = Color.DarkGray)
+                    )
+
+                    Divider(modifier = Modifier.padding(vertical = 6.dp))
+                }
+            }
+        }
+    }
+}
+
+/* ---------------- AI Insights with Icons ---------------- */
+
+@Composable
+fun AIInsightsSection(aiInsights: List<String>) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)) {
+        Text("AI Insights", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        aiInsights.forEach { insight ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.PieChart, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(8.dp))
+                    Text(insight, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+    }
+}
+
+/* ---------------- Filters ---------------- */
 
 @Composable
 fun FiltersSection(
@@ -139,158 +267,36 @@ fun FiltersSection(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(6.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Filters", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 DropdownMenuBox(
                     items = ReportPeriod.entries.map { it.displayName },
                     selectedItem = selectedPeriod.displayName,
                     label = "Time Period",
-                    onItemSelected = { period ->
-                        onPeriodSelected(ReportPeriod.fromString(period))
-                    },
-                    modifier = Modifier.weight(0.5f)
+                    onItemSelected = { period -> onPeriodSelected(ReportPeriod.fromString(period)) },
+                    modifier = Modifier.weight(1f)
                 )
                 if (isBusinessMode && userRole == UserRole.ADMIN) {
                     DropdownMenuBox(
                         items = listOf("All Staff", "Staff A", "Staff B"),
                         selectedItem = selectedStaff ?: "All Staff",
                         label = "Staff",
-                        onItemSelected = { onStaffSelected(it) },
-                        modifier = Modifier.weight(0.5f)
+                        onItemSelected = onStaffSelected,
+                        modifier = Modifier.weight(1f)
                     )
-
                 }
             }
         }
     }
 }
 
-@Composable
-fun ReportsChartsSection(uiState: ReportsUiState) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Spending Trends", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            // TODO: Replace with Compose Chart library (Line / Bar chart)
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Monthly Expenses", style = MaterialTheme.typography.titleMedium)
-                    BarChart(
-                        data = mapOf("Jan" to 2000f, "Feb" to 3500f, "Mar" to 1800f, "Apr" to 4000f),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-                }
-            }
-
-            /*Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                BarChart(
-                    data = mapOf("Jan" to 2000f, "Feb" to 3500f, "Mar" to 1800f, "Apr" to 4000f),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                )
-            }*/
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Category Breakdown", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            // TODO: Replace with Pie chart
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Category Breakdown", style = MaterialTheme.typography.titleMedium)
-                    PieChart(
-                        data = mapOf("Food" to 40f, "Travel" to 25f, "Bills" to 35f),
-                        colors = listOf(Color(0xFF4CAF50), Color(0xFF2196F3), Color(0xFFFF9800)),
-                        modifier = Modifier
-                            .size(200.dp)
-                            .align(Alignment.CenterHorizontally)
-                    )
-                }
-            }
-//            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-//                PieChart(
-//                    data = mapOf("Food" to 40f, "Travel" to 25f, "Cab" to 25f, "Bills" to 35f),
-//                    colors = listOf(Color(0xFF4CAF50), Color(0xFFE91E63), Color(0xFF2196F3), Color(0xFFFF9800)),
-//                    modifier = Modifier
-//                        .size(200.dp)
-////                        .align(Alignment.CenterHorizontally)
-//                )
-//            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Line Chart", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Text("Spending Trend", style = MaterialTheme.typography.titleMedium)
-                LineChart(
-                    data = listOf(500f, 1200f, 800f, 2000f, 1800f, 2200f),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun AIInsightsSection(aiInsights: List<String>) {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        Text("AI Insights", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-        aiInsights.forEach { insight ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = insight,
-                    modifier = Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
-}
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DropdownMenuBox(
     items: List<String>,
@@ -300,32 +306,342 @@ fun DropdownMenuBox(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var text by remember { mutableStateOf(selectedItem) }
+    var selected by remember { mutableStateOf(selectedItem) }
 
-    Box(modifier = modifier) {
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
         OutlinedTextField(
-            value = text,
+            value = selected,
             onValueChange = {},
-            label = { Text(label) },
             readOnly = true,
+            label = { Text(label) },
             trailingIcon = {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                }
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
         )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
             items.forEach { item ->
-                DropdownMenuItem(text = { Text(item) }, onClick = {
-                    text = item
-                    expanded = false
-                    onItemSelected(item)
-                })
+                DropdownMenuItem(
+                    text = { Text(item) },
+                    onClick = {
+                        selected = item
+                        onItemSelected(item)
+                        expanded = false
+                    }
+                )
             }
         }
     }
 }
+
+/* ---------------- Charts Section ---------------- */
+
+@Composable
+fun ReportsChartsSection(uiState: ReportsUiState) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        // 📊 Spending Trends (Bar Chart with Scroll)
+        Text(
+            "Spending Trends",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(8.dp)
+        ) {
+            val barData = mapOf(
+                "Jan" to 2000f, "Feb" to 3500f, "Mar" to 1800f,
+                "Apr" to 4000f, "May" to 2500f, "Jun" to 3200f
+            )
+
+            // Scrollable if too many months
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(12.dp)
+            ) {
+                BarChartWithAxis(
+                    data = barData,
+                    modifier = Modifier
+                        .height(220.dp)
+                        .width((barData.size * 90).dp) // dynamic width
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // 🥧 Category Breakdown (Pie Chart with List)
+        Text(
+            "Category Breakdown",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(8.dp)
+        ) {
+            val categoryData = mapOf(
+                "Food" to 40f,
+                "Travel" to 25f,
+                "Bills" to 35f,
+                "Shopping" to 15f,
+                "Other" to 10f
+            )
+
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                PieChartWithHover(
+                    data = categoryData,
+                    modifier = Modifier
+                        .size(200.dp)
+                        .padding(8.dp)
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                // Sorted List High → Low
+                categoryData.entries
+                    .sortedByDescending { it.value }
+                    .forEach { (category, value) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(category, style = MaterialTheme.typography.bodyMedium)
+                            Text("${value}%", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // 📈 Spending Over Time (Line Chart with Axis)
+        Text(
+            "Spending Over Time",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(8.dp)
+        ) {
+            val lineData = listOf(500f, 1200f, 800f, 2000f, 1800f, 2200f)
+
+            LineChartWithAxis(
+                data = lineData,
+                xLabels = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun"),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun BarChartWithAxis(data: Map<String, Float>, modifier: Modifier = Modifier) {
+    val maxY = (data.values.maxOrNull() ?: 0f) * 1.2f
+    Canvas(modifier = modifier) {
+        val barWidth = size.width / (data.size * 2)
+        val space = barWidth
+        val xStep = (barWidth + space)
+
+        // Y axis
+        drawLine(Color.Gray, start = Offset(80f, 0f), end = Offset(80f, size.height))
+
+        data.entries.forEachIndexed { index, entry ->
+            val barHeight = (entry.value / maxY) * size.height
+            val x = 100f + index * xStep
+            drawRect(
+                color = Color(0xFF2196F3),
+                topLeft = Offset(x, size.height - barHeight),
+                size = Size(barWidth, barHeight)
+            )
+            drawContext.canvas.nativeCanvas.drawText(
+                entry.key,
+                x,
+                size.height - 10,
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.BLACK
+                    textSize = 28f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                }
+            )
+            drawContext.canvas.nativeCanvas.drawText(
+                entry.value.toInt().toString(),
+                x,
+                size.height - barHeight - 10,
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.DKGRAY
+                    textSize = 26f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                }
+            )
+        }
+    }
+}
+@Composable
+fun PieChartWithHover(
+    data: Map<String, Float>,
+    modifier: Modifier = Modifier
+) {
+    val total = data.values.sum()
+    var selectedSlice by remember { mutableStateOf<String?>(null) }
+
+    // Auto generate distinct colors based on number of slices
+    val colors = remember(data.size) {
+        List(data.size) { index ->
+            Color.hsv(
+                hue = (index * (360f / data.size)) % 360f,
+                saturation = 0.7f,
+                value = 0.9f
+            )
+        }
+    }
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier
+            .matchParentSize()
+            .clickable {
+                // Toggle selection on click (for demo purpose)
+                selectedSlice = if (selectedSlice == null) data.keys.first() else null
+            }) {
+            var startAngle = -90f
+            data.entries.forEachIndexed { index, entry ->
+                val sweep = 360 * (entry.value / total)
+                val sliceColor =
+                    if (selectedSlice == entry.key) colors[index].copy(alpha = 0.6f)
+                    else colors[index]
+
+                // ✅ Draw only the slice (no inner circle)
+                drawArc(
+                    color = sliceColor,
+                    startAngle = startAngle,
+                    sweepAngle = sweep,
+                    useCenter = true,
+                    size = size
+                )
+                startAngle += sweep
+            }
+        }
+
+        // ✅ Show hover/selection details in center
+        selectedSlice?.let {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(it, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "${data[it]?.toInt()} (${((data[it] ?: 0f) / total * 100).toInt()}%)",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
+
+
+
+
+@Composable
+fun LineChartWithAxis(data: List<Float>, xLabels: List<String>, modifier: Modifier = Modifier) {
+    val maxY = (data.maxOrNull() ?: 0f) * 1.2f
+    Canvas(modifier = modifier) {
+        val xStep = size.width / (data.size - 1)
+        val points = data.mapIndexed { i, value ->
+            Offset(i * xStep, size.height - (value / maxY) * size.height)
+        }
+
+        // Y Axis
+        drawLine(Color.Gray, start = Offset(80f, 0f), end = Offset(80f, size.height))
+
+        // Line
+        for (i in 0 until points.size - 1) {
+            drawLine(Color(0xFFFF5722), points[i], points[i + 1], strokeWidth = 6f)
+        }
+
+        // Points + labels
+        points.forEachIndexed { i, point ->
+            drawCircle(Color(0xFFFF5722), radius = 10f, center = point)
+            drawContext.canvas.nativeCanvas.drawText(
+                data[i].toInt().toString(),
+                point.x,
+                point.y - 15,
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.BLACK
+                    textSize = 28f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                }
+            )
+            drawContext.canvas.nativeCanvas.drawText(
+                xLabels[i],
+                point.x,
+                size.height - 10,
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.DKGRAY
+                    textSize = 26f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                }
+            )
+        }
+    }
+}
+
+
+
+/* ---------------- AI Insights ---------------- */
+
+/*@Composable
+fun AIInsightsSection(aiInsights: List<String>) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Text("AI Insights", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        aiInsights.forEach { insight ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Text(insight, modifier = Modifier.padding(12.dp))
+            }
+        }
+    }
+}*/
+
+/* ---------------- ViewModel ---------------- */
 
 enum class ReportPeriod(val displayName: String) {
     WEEKLY("Weekly"),
@@ -333,7 +649,7 @@ enum class ReportPeriod(val displayName: String) {
     QUARTERLY("Quarterly");
 
     companion object {
-        fun fromString(name: String) = ReportPeriod.entries.first { it.displayName == name }
+        fun fromString(name: String) = entries.first { it.displayName == name }
     }
 }
 
@@ -343,494 +659,3 @@ data class ReportsUiState(
     val expenses: List<Expense> = emptyList(),
     val aiInsights: List<String> = listOf("You spent 20% more on Travel this month.", "Food category is your highest expense.")
 )
-
-@Composable
-fun FilterSection(
-    isBusinessMode: Boolean,
-    userRole: UserRole,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Filters", style = MaterialTheme.typography.titleMedium)
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                DropdownMenuBox(
-                    items = listOf("Weekly", "Monthly", "Quarterly"),
-                    label = "Time Period",
-                    onItemSelected = { period ->
-//                        onFilterSelected(ReportFilter.Period(period))
-                    }
-                )
-                if (isBusinessMode && userRole == UserRole.ADMIN) {
-                    DropdownMenuBox(
-                        items = listOf("All Staff", "Staff 1", "Staff 2"),
-                        label = "Staff",
-                        onItemSelected = { staff ->
-//                            onFilterSelected(ReportFilter.Staff(staff))
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ChartsSection(uiState: ReportsUiState) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            "Spending Trends",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-        )
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            // Replace with a Compose chart library
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Bar / Line Chart Placeholder")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            "Category Breakdown",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-        )
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Pie Chart Placeholder")
-            }
-        }
-    }
-}
-
-
-@Composable
-fun DropdownMenuBox(items: List<String>, label: String, onItemSelected: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf(items.first()) }
-
-    Column {
-        OutlinedTextField(
-            value = selectedText,
-            onValueChange = {},
-            label = { Text(label) },
-            readOnly = true,
-            trailingIcon = {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                }
-            },
-            modifier = Modifier.fillMaxWidth(0.48f)
-        )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            items.forEach { item ->
-                DropdownMenuItem(text = { Text(item) }, onClick = {
-                    selectedText = item
-                    expanded = false
-                    onItemSelected(item)
-                })
-            }
-        }
-    }
-}
-
-
-/*@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ReportScreen(
-    navManager: NavManager? = null,
-    last7DaysExpenses: List<Expense>,
-    isBusinessMode: Boolean = false,
-    onBack: () -> Unit
-) {
-    val context = LocalContext.current
-    var selectedTab by remember { mutableStateOf(0) }
-    val tabs = if (isBusinessMode) listOf("Overview", "Categories", "Staff") else listOf("Overview", "Categories")
-
-    // Totals grouped by day
-    val last7DaysTotals = remember(last7DaysExpenses) {
-        val now = System.currentTimeMillis()
-        (0..6).mapNotNull { i ->
-            val dayStart = DateUtils.startOfDayMillis(now - i * 86400000L)
-            val dayEnd = DateUtils.endOfDayMillis(now - i * 86400000L)
-            val dayExpenses = last7DaysExpenses.filter { it.timestamp in dayStart..dayEnd }
-            if (dayExpenses.isNotEmpty()) dayStart to dayExpenses.sumOf { it.amount } else null
-        }.reversed()
-    }
-
-    // Category totals
-    val categoryTotals = remember(last7DaysExpenses) {
-        last7DaysExpenses.groupBy { it.category }
-            .mapValues { entry -> entry.value.sumOf { it.amount } }
-    }
-
-    // Staff totals
-    val staffTotals = remember(last7DaysExpenses) {
-        last7DaysExpenses.groupBy { it.category ?: "Unknown" }
-            .mapValues { entry -> entry.value.sumOf { it.amount } }
-    }
-
-    BaseScaffold(
-        navManager = navManager,
-        currentRoute = ScreenRoutes.Reports.route,
-        topBar = {
-            ReportTopBar(
-                onBack = onBack,
-                onExport = {
-                    val csv = ExportUtils.buildCsvFromExpenses(last7DaysExpenses)
-                    val uri = ExportUtils.writeCsvToCache(context, "expenses.csv", csv)
-                    if (uri != null) Toast.makeText(context, "Exported to cache", Toast.LENGTH_SHORT).show()
-                },
-                onShare = {
-                    val csv = ExportUtils.buildCsvFromExpenses(last7DaysExpenses)
-                    val uri = ExportUtils.writeCsvToCache(context, "expenses.csv", csv)
-                    if (uri != null) ExportUtils.shareCsv(context, uri)
-                }
-            )
-        },
-        content = { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                // Modern Tabs
-                TabRow(
-                    selectedTabIndex = selectedTab,
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    indicator = { tabPositions ->
-                        TabRowDefaults.Indicator(
-                            Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                            height = 4.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                ) {
-                    tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            text = { Text(title, style = MaterialTheme.typography.labelLarge) }
-                        )
-                    }
-                }
-
-                when (selectedTab) {
-                    0 -> OverviewTab(last7DaysExpenses, last7DaysTotals)
-                    1 -> CategoriesTab(categoryTotals)
-                    2 -> if (isBusinessMode) StaffTab(staffTotals)
-                }
-            }
-        }
-    )
-}*/
-
-/* ---------------- Tab Screens ---------------- */
-
-@Composable
-fun OverviewTab(expenses: List<Expense>, last7DaysTotals: List<Pair<Long, Double>>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        item { SectionTitle("AI Insights") }
-        item { InsightsCard(expenses = expenses) }
-
-        item { SectionTitle("Totals — Last 7 Days") }
-        item {
-            last7DaysTotals.forEach { (dayMs, total) ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(dayMs)))
-                        Text("₹${"%.2f".format(total)}")
-                    }
-                }
-            }
-        }
-
-        item { SectionTitle("Daily Overview (Bar Chart)") }
-        item { DailyBarChart(last7DaysTotals.associate { it.first to it.second }) }
-    }
-}
-
-@Composable
-fun CategoriesTab(categoryTotals: Map<String, Double>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        item { SectionTitle("Category Totals") }
-        item { TotalsList(data = categoryTotals) }
-        item { CategoryPieChart(categoryTotals) }
-    }
-}
-
-@Composable
-fun StaffTab(staffTotals: Map<String, Double>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        item { SectionTitle("Staff Totals") }
-        item { TotalsList(data = staffTotals) }
-    }
-}
-
-/* ---------------- Modern Components ---------------- */
-
-@Composable
-fun InsightsCard(expenses: List<Expense>) {
-    val total = expenses.sumOf { it.amount }
-    val food = expenses.filter { it.category == "Food" }.sumOf { it.amount }
-    val foodPercent = if (total > 0) (food / total) * 100 else 0.0
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text("Smart Insights", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            Text("You spent ₹${"%.0f".format(food)} on Food (${String.format("%.1f", foodPercent)}% of total).")
-            Text("Highest category: ${expenses.groupBy { it.category }.maxByOrNull { it.value.sumOf { e -> e.amount } }?.key ?: "N/A"}")
-        }
-    }
-}
-
-@Composable
-fun CategoryPieChart(data: Map<String, Double>) {
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        val sum = data.values.sumOf { it } ?: 1.0
-        data.forEach { (category, total) ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(category, modifier = Modifier.weight(1f))
-                LinearProgressIndicator(
-                progress = { (total / sum).toFloat() },
-                modifier = Modifier
-                    .weight(2f)
-                    .height(12.dp)
-                    .padding(horizontal = 8.dp),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = ProgressIndicatorDefaults.linearTrackColor,
-                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-                )
-                Text("₹${"%.0f".format(total)}", modifier = Modifier.weight(1f))
-            }
-        }
-    }
-}
-/* ---------------- Reusable Components ---------------- */
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ReportTopBar(onBack: () -> Unit, onExport: () -> Unit, onShare: () -> Unit) {
-    TopAppBar(
-        title = { Text("Report — Last 7 days") },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-        },
-        actions = {
-            IconButton(onClick = onExport) {
-                Icon(Icons.Default.UploadFile, contentDescription = "Export")
-            }
-            IconButton(onClick = onShare) {
-                Icon(Icons.Default.Share, contentDescription = "Share")
-            }
-        }
-    )
-}
-
-@Composable
-fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(vertical = 8.dp)
-    )
-    HorizontalDivider(
-        Modifier.padding(bottom = 8.dp),
-        DividerDefaults.Thickness,
-        DividerDefaults.color
-    )
-}
-
-@Composable
-fun TotalsList(data: Map<String, Double>) {
-    Column {
-        data.forEach { (label, total) ->
-            Row(
-                Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(label)
-                Text("₹${"%.2f".format(total)}")
-            }
-        }
-    }
-    HorizontalDivider(
-        Modifier.padding(vertical = 12.dp),
-        DividerDefaults.Thickness,
-        DividerDefaults.color
-    )
-}
-
-@Composable
-fun DailyBarChart(dailyTotals: Map<Long, Double>) {
-    val maxTotal = dailyTotals.values.maxOrNull() ?: 1.0
-    Column {
-        dailyTotals.forEach { (dayMs, total) ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 2.dp)
-            ) {
-                val dayLabel = SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(dayMs))
-                Text(
-                    text = dayLabel,
-                    modifier = Modifier.width(60.dp),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Box(
-                    modifier = Modifier
-                        .height(20.dp)
-                        .width((200 * (total / maxTotal)).dp)
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text("₹${"%.0f".format(total)}", style = MaterialTheme.typography.bodySmall)
-            }
-        }
-    }
-    HorizontalDivider(
-        Modifier.padding(vertical = 12.dp),
-        DividerDefaults.Thickness,
-        DividerDefaults.color
-    )
-}
-
-@Composable
-fun ExpenseRow(expense: Expense) {
-    ListItem(
-        headlineContent = { Text(expense.title) },
-        supportingContent = {
-            Text(
-                SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
-                    .format(Date(expense.timestamp)) + " — " + expense.category
-            )
-        },
-        trailingContent = { Text("₹${"%.2f".format(expense.amount)}") }
-    )
-    HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-}
-
-/* ---------------- Preview ---------------- */
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewReportsScreen_Personal() {
-    // Mock ViewModel state for Personal User
-    val mockUiState = ReportsUiState(
-        selectedPeriod = ReportPeriod.WEEKLY,
-        selectedStaff = null,
-        expenses = listOf(
-            Expense(1, "Lunch", 250.0, "Food", "2025-08-23"),
-            Expense(2, "Taxi", 500.0, "Travel", "2025-08-23")
-        ),
-        aiInsights = listOf(
-            "You spent 20% more on Travel this month.",
-            "Food category is your highest expense."
-        )
-    )
-
-    // Using a fake ViewModel for preview
-    ReportsScreenPreviewContent(
-        isBusinessMode = false,
-        userRole = UserRole.PERSONAL,
-        uiState = mockUiState
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewReportsScreen_BusinessAdmin() {
-    val mockUiState = ReportsUiState(
-        selectedPeriod = ReportPeriod.MONTHLY,
-        selectedStaff = "All Staff",
-        expenses = listOf(
-            Expense(1, "Office Supplies", 1200.0, "Utility", "2025-08-23", "Staff A"),
-            Expense(2, "Client Lunch", 2000.0, "Food", "2025-08-23", "Staff B")
-        ),
-        aiInsights = listOf(
-            "Staff A exceeded budget by 15% in Food category.",
-            "Travel expenses increased by 10% compared to last month."
-        )
-    )
-
-    ReportsScreenPreviewContent(
-        isBusinessMode = true,
-        userRole = UserRole.ADMIN,
-        uiState = mockUiState
-    )
-}
-
-// Helper composable to inject mock state for preview
-@Composable
-fun ReportsScreenPreviewContent(
-    isBusinessMode: Boolean,
-    userRole: UserRole,
-    uiState: ReportsUiState
-) {
-    // Fake ViewModel implementation
-    val fakeViewModel = object : ReportsViewModelFake(uiState) {}
-    ReportsScreen(
-        navManager = null,
-        isBusinessMode = isBusinessMode,
-        userRole = userRole,
-        reportsViewModel = fakeViewModel
-    )
-}
-
-// Fake ViewModel class for preview
-open class ReportsViewModelFake(private val mockState: ReportsUiState) : ReportsViewModel() {
-    override val reportsState: StateFlow<ReportsUiState> = MutableStateFlow(mockState)
-}
-

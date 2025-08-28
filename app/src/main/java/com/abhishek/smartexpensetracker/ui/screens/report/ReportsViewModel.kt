@@ -20,6 +20,8 @@ open class ReportsViewModel : ViewModel() {
         Expense(1, "Lunch", 250.0, "Food", "2025-08-23", "Staff A"),
         Expense(2, "Taxi", 500.0, "Travel", "2025-08-23", "Staff B"),
         Expense(3, "Office Supplies", 1200.0, "Utility", "2025-08-22", "Staff A"),
+        Expense(2, "Taxi", 500.0, "Travel", "2025-08-23", "Staff B"),
+        Expense(3, "Office Supplies", 1200.0, "Utility", "2025-08-22", "Staff A"),
         Expense(4, "Client Dinner", 2000.0, "Food", "2025-08-21", "Staff B")
     )
 

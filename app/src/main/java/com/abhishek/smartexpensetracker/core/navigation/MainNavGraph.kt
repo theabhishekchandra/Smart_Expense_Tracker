@@ -11,7 +11,7 @@ import com.abhishek.smartexpensetracker.ui.screens.expense.AddExpenseScreen
 import com.abhishek.smartexpensetracker.ui.screens.expense.ExpenseDetailScreen
 import com.abhishek.smartexpensetracker.ui.screens.home.HomeScreen
 import com.abhishek.smartexpensetracker.ui.screens.home.HomeViewModel
-import com.abhishek.smartexpensetracker.ui.screens.listscreen.ExpenseListScreen
+import com.abhishek.smartexpensetracker.ui.screens.expense.ExpenseListScreen
 import com.abhishek.smartexpensetracker.ui.screens.login.viewmodel.ExpenseViewModel
 import com.abhishek.smartexpensetracker.ui.screens.profile.EditProfileScreen
 import com.abhishek.smartexpensetracker.ui.screens.profile.ProfileScreen
