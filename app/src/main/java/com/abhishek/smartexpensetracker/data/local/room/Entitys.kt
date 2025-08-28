@@ -1,9 +1,12 @@
 package com.abhishek.smartexpensetracker.data.local.room
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
+import androidx.room.TypeConverter
 
 // 1. User Table (for Admin & Staff login)
 @Entity(tableName = "users")
@@ -47,25 +50,25 @@ data class ExpenseEntity(
 
 
 //3. Allocation Table (Admin assigned budgets to staff)
-@Entity(
-    tableName = "allocations",
-    foreignKeys = [
-        ForeignKey(entity = UserEntity::class, parentColumns = ["id"], childColumns = ["staffId"], onDelete = ForeignKey.CASCADE)
-    ],
-    indices = [Index("staffId")]
-)
-data class AllocationEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val staffId: Long,
-    val title: String,
-    val category: String,
-    val allocatedAmount: Double,
-    val usedAmount: Double = 0.0,
-    val notes: String? = null,
-    val createdAt: Long = System.currentTimeMillis(),
-    val expiresAt: Long? = null,
-    val status: String = "Active" // Active / Closed / Expired
-)
+//@Entity(
+//    tableName = "allocations",
+//    foreignKeys = [
+//        ForeignKey(entity = UserEntity::class, parentColumns = ["id"], childColumns = ["staffId"], onDelete = ForeignKey.CASCADE)
+//    ],
+//    indices = [Index("staffId")]
+//)
+////data class AllocationEntity(
+//    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+//    val staffId: Long,
+//    val title: String,
+//    val category: String,
+//    val allocatedAmount: Double,
+//    val usedAmount: Double = 0.0,
+//    val notes: String? = null,
+//    val createdAt: Long = System.currentTimeMillis(),
+//    val expiresAt: Long? = null,
+//    val status: String = "Active" // Active / Closed / Expired
+//)
 
 
 // 4. Budget Table (Admin sets overall company/department budgets)
@@ -180,23 +183,45 @@ data class CategorySpendingSummary(
     indices = [Index(value = ["email"], unique = true), Index(value = ["employeeId"], unique = true)]
 )
 data class StaffEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
-    val employeeId: String? = null,         // Company employee id / ref
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val employeeId: String,
     val name: String,
     val email: String,
-    val phone: String? = null,
-    val role: String = "entry",              // "admin" | "approver" | "entry" | "viewer"
-    val department: String? = null,
-    val designation: String? = null,
-    val managerId: Long? = null,            // reportsTo
-    val joiningDate: Long? = null,          // epoch millis
-    val salary: Double? = null,
-    val profilePicUri: String? = null,
-    val permissionsJson: String? = null,    // optional advanced permissions serialized
+    val phone: String?,
+    val role: String,
+    val department: String?,
+    val designation: String?,
+    val managerId: Int?,
+    val joiningDate: String?,
+    val salary: Double?,
+    val profilePicUri: String?,
+    val permissionsJson: String?, // keep only one!
     val isActive: Boolean = true,
-    val lastLoginAt: Long? = null,
-    val notes: String? = null,
+    val lastLoginAt: String?,
+    val notes: String?,
     val createdAt: Long = System.currentTimeMillis()
+)
+
+@Entity(tableName = "allocations")
+data class AllocationEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val staffId: Int,
+    val title: String,
+    val category: String,
+    val allocatedAmount: Double,
+    val notes: String? = null,
+    val createdAt: Long = System.currentTimeMillis(),
+    val expiresAt: Long? = null,
+    val status: String = "Active"
+)
+
+data class StaffWithAllocations(
+    @Embedded val staff: StaffEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "staffId"
+    )
+    val allocations: List<AllocationEntity>
 )
 
 // For the getStaffWithExpenseSummary() result
@@ -212,8 +237,16 @@ data class StaffExpenseSummary(
     val totalExpenses: Double
 )
 
-// For a transaction that returns staff + allocations
-data class StaffWithAllocations(
-    val staff: StaffEntity,
-    val allocations: List<AllocationEntity>
-)
+
+class Converters {
+
+    @TypeConverter
+    fun fromStringList(list: List<String>?): String? {
+        return list?.joinToString("|") // store in DB as single String
+    }
+
+    @TypeConverter
+    fun toStringList(data: String?): List<String>? {
+        return data?.split("|")?.map { it.trim() }
+    }
+}

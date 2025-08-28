@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RewriteQueriesToDropUnusedColumns
 
 @Dao
 interface UserDao {
@@ -18,6 +19,7 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE role = 'staff'")
     suspend fun getAllStaff(): List<UserEntity>
 
+    @RewriteQueriesToDropUnusedColumns
     @Query("""
         SELECT u.*, 
         (SELECT IFNULL(SUM(amount),0) FROM expenses e WHERE e.userId = u.id) as totalExpenses

@@ -2,6 +2,7 @@ package com.abhishek.smartexpensetracker.data.local.room
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
 @Database(
     entities = [
@@ -11,11 +12,13 @@ import androidx.room.RoomDatabase
         BudgetEntity::class,
         Category::class,
         Notification::class,
-        SyncLog::class
+        SyncLog::class,
+        StaffEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun expenseDao(): ExpenseDao
