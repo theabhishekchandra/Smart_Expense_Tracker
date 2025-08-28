@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.abhishek.smartexpensetracker.core.datastore.Currency
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
@@ -334,67 +335,102 @@ private fun BudgetsCard(items: List<BudgetProgress>, currency: Currency?) {
 }
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AiFeedbackCard(
+fun AiFeedbackCard(
     tips: List<AiTip>?,
     improvements: List<ImprovementIdea>?,
     onAction: NavManager?
 ) {
     val ctx = LocalContext.current
 
-    Card(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
         Column(
-            Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier
+                .padding(20.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            // Title
+            // Title with AI Glow Effect
             Text(
-                "AI Insights & Improvements",
-                style = MaterialTheme.typography.titleMedium
+                text = "🤖 AI Insights & Improvements",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleLarge
             )
 
             // AI Tips Section
             tips?.forEach { tip ->
                 ElevatedCard(
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.elevatedCardColors(
-                    )
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(tip.title, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(4.dp))
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            tip.title,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Text(
                             tip.detail,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
 
-            // Suggestions Chips Section
+            // Suggestion Chips Section
             if (improvements?.isNotEmpty() == true) {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     improvements.forEach { imp ->
                         SuggestionChip(
                             onClick = {
                                 Toast.makeText(ctx, "Clicked for ${imp.actionLabel}", Toast.LENGTH_SHORT).show()
                             },
-                            label = { Text(imp.title) },
-
+                            label = {
+                                Text(
+                                    imp.title,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                // TODO: Change Color they show some highlight.
-                                containerColor = MaterialTheme.colorScheme.background
-                            )
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         )
                     }
                 }
 
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Info Text
                 Text(
-                    "Tap a suggestion to apply quick improvements",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    "💡 Tap a suggestion to apply quick improvements",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 13.sp
                 )
             }
         }
@@ -741,9 +777,9 @@ private fun HomeScreenPreview() {
         true,
 
     ){
-        HomeScreen(null, hiltViewModel())
+//        HomeScreen(null, hiltViewModel())
 //        PendingApprovalsCard(sample.pendingApprovals, sample.currency, )
-//        AiFeedbackCard(sample.aiTips, sample.improvements, null)
+        AiFeedbackCard(sample.aiTips, sample.improvements, null)
 
     }
 }

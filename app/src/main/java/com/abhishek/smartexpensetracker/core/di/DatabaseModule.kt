@@ -2,11 +2,8 @@ package com.abhishek.smartexpensetracker.core.di
 
 import android.content.Context
 import androidx.room.Room
-import com.abhishek.smartexpensetracker.data.local.room.AppDatabase
-import com.abhishek.smartexpensetracker.data.local.room.ExpenseDao
-import com.abhishek.smartexpensetracker.data.model.Expense
-import com.abhishek.smartexpensetracker.data.repository.ExpenseRepository
-import com.abhishek.smartexpensetracker.data.repository.IExpenseRepository
+import com.abhishek.smartexpensetracker.data.local.room.*
+import com.abhishek.smartexpensetracker.data.repository.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,35 +16,87 @@ import javax.inject.Singleton
 object DatabaseModule {
 
     @Provides
-    fun provideDatabase(@ApplicationContext context: Context) : AppDatabase{
-
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
-            "smart_expense_db")
-            .allowMainThreadQueries()
+            "smart_expense_db"
+        )
             .fallbackToDestructiveMigration(false)
             .build()
-
     }
+
+    // ---------- DAOs ----------
 
     @Provides
     @Singleton
-    fun provideExpenseDao(db : AppDatabase) : ExpenseDao {
-        return db.expenseDao()
-
-    }
+    fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
 
     @Provides
     @Singleton
-    fun provideExpenseEntity() = Expense()
+    fun provideExpenseDao(db: AppDatabase): ExpenseDao = db.expenseDao()
+
+    @Provides
+    @Singleton
+    fun provideAllocationDao(db: AppDatabase): AllocationDao = db.allocationDao()
+
+    @Provides
+    @Singleton
+    fun provideBudgetDao(db: AppDatabase): BudgetDao = db.budgetDao()
+
+    @Provides
+    @Singleton
+    fun provideCategoryDao(db: AppDatabase): CategoryDao = db.categoryDao()
+
+    @Provides
+    @Singleton
+    fun provideNotificationDao(db: AppDatabase): NotificationDao = db.notificationDao()
+
+    @Provides
+    @Singleton
+    fun provideSyncLogDao(db: AppDatabase): SyncLogDao = db.syncLogDao()
+
+    @Provides
+    @Singleton
+    fun provideStaffDao(db: AppDatabase): StaffDao = db.staffDao()
+
+    // ---------- Repositories ----------
+
+    @Provides
+    @Singleton
+    fun provideExpenseRepository(dao: ExpenseDao): IExpenseRepository =
+        ExpenseRepository(dao)
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(dao: UserDao): IUserRepository = UserRepository(dao)
+    @Provides
+    @Singleton
+    fun provideAllocationRepository(dao: AllocationDao): IAllocationRepository = AllocationRepository(dao)
+
+    @Provides
+    @Singleton
+    fun provideBudgetRepository(dao: BudgetDao): IBudgetRepository = BudgetRepository(dao)
+
+    @Provides
+    @Singleton
+    fun provideCategoryRepository(dao: CategoryDao): ICategoryRepository = CategoryRepository(dao)
+
+    @Provides
+    @Singleton
+    fun provideNotificationRepository(dao: NotificationDao): INotificationRepository = NotificationRepository(dao)
+
+    @Provides
+    @Singleton
+    fun provideSyncLogRepository(dao: SyncLogDao): ISyncLogRepository = SyncLogRepository(dao)
 
 
     @Provides
     @Singleton
-    fun provideExpenseRepository(
-        dao: ExpenseDao
-    ): IExpenseRepository {
-        return ExpenseRepository(dao)
-    }
+    fun provideStaffRepository(dao: StaffDao, allocationDao: AllocationDao): IStaffRepository =
+        StaffRepository(dao, allocationDao)
+
+
+
 }

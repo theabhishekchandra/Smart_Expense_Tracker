@@ -1,6 +1,7 @@
 package com.abhishek.smartexpensetracker.data.repository
 
 import com.abhishek.smartexpensetracker.data.local.room.ExpenseDao
+import com.abhishek.smartexpensetracker.data.local.room.ExpenseEntity
 import com.abhishek.smartexpensetracker.data.model.DateFilter
 import com.abhishek.smartexpensetracker.data.model.Expense
 import kotlinx.coroutines.flow.Flow
@@ -10,16 +11,16 @@ import javax.inject.Inject
 class ExpenseRepository @Inject constructor(
     private val dao: ExpenseDao
 ) : IExpenseRepository {
-    override fun getAll(): Flow<List<Expense>> = dao.getAll()
-    override fun getForDayRange(dayStart: Long, dayEnd: Long): Flow<List<Expense>> = dao.getForDayRange(dayStart, dayEnd)
-    override suspend fun insert(expense: Expense) = dao.insert(expense)
-    override suspend fun update(expense: Expense) = dao.update(expense)
-    override suspend fun delete(expense: Expense) = dao.delete(expense)
+    override fun getAll(): Flow<List<ExpenseEntity>> = dao.getAll()
+    override fun getForDayRange(dayStart: Long, dayEnd: Long): Flow<List<ExpenseEntity>> = dao.getForDayRange(dayStart, dayEnd)
+    override suspend fun insert(expense: ExpenseEntity) = dao.insert(expense)
+    override suspend fun update(expense: ExpenseEntity) = dao.update(expense)
+    override suspend fun delete(expense: ExpenseEntity) = dao.delete(expense)
     override suspend fun totalForDayRange(dayStart: Long, dayEnd: Long): Double = dao.totalForDayRange(dayStart, dayEnd) ?: 0.0
-    override suspend fun getUnsynced(): List<Expense> = dao.getUnsynced()
+    override suspend fun getUnsynced(): List<ExpenseEntity> = dao.getUnsynced()
 
 
-    override fun getExpensesByFilter(filter: DateFilter): Flow<List<Expense>> {
+    override fun getExpensesByFilter(filter: DateFilter): Flow<List<ExpenseEntity>> {
         val cal = Calendar.getInstance()
 
         return when (filter) {
@@ -56,4 +57,16 @@ class ExpenseRepository @Inject constructor(
             }
         }
     }
+}
+
+interface IExpenseRepository {
+    fun getAll(): Flow<List<ExpenseEntity>>
+    fun getForDayRange(dayStart: Long, dayEnd: Long): Flow<List<ExpenseEntity>>
+    suspend fun insert(expense: ExpenseEntity)
+    suspend fun update(expense: ExpenseEntity)
+    suspend fun delete(expense: ExpenseEntity)
+    suspend fun totalForDayRange(dayStart: Long, dayEnd: Long): Double
+    suspend fun getUnsynced(): List<ExpenseEntity>
+    fun getExpensesByFilter(filter: DateFilter): Flow<List<ExpenseEntity>>
+
 }

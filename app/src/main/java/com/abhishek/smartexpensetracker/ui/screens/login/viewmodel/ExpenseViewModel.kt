@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abhishek.smartexpensetracker.core.datastore.ThemeType
 import com.abhishek.smartexpensetracker.core.datastore.AppPreferencesRepository
+import com.abhishek.smartexpensetracker.data.local.room.ExpenseEntity
 import com.abhishek.smartexpensetracker.data.model.DateFilter
 import com.abhishek.smartexpensetracker.data.model.Expense
 import com.abhishek.smartexpensetracker.data.model.ExpenseDM
@@ -66,7 +67,7 @@ class ExpenseViewModel @Inject constructor(
                     _uiState.update { it.copy(loading = false, error = e.message) }
                 }
                 .collect { list ->
-                    val searched = applySearch(list, _uiState.value.searchQuery)
+//                    val searched = applySearch(list, _uiState.value.searchQuery)
 //                    _uiState.update { it.copy(expenses = searched, loading = false) }
                 }
         }
@@ -77,17 +78,17 @@ class ExpenseViewModel @Inject constructor(
         _uiState.update { it.copy(searchQuery = query) }
         viewModelScope.launch {
             repo.getExpensesByFilter(currentFilter).firstOrNull()?.let { list ->
-                val searched = applySearch(list, query)
+//                val searched = applySearch(list, query)
 //                _uiState.update { it.copy(expenses = searched) }
             }
         }
     }
 
 
-    private fun applySearch(list: List<Expense>, query: String): List<Expense> {
-        if (query.isBlank()) return list
-        return list.filter { it.title.contains(query, ignoreCase = true) }
-    }
+//    private fun applySearch(list: List<Expense>, query: String): List<Expense> {
+//        if (query.isBlank()) return list
+//        return list.filter { it.title.contains(query, ignoreCase = true) }
+//    }
 
     /** 🔹 Toggle grouping mode */
     fun toggleGroupMode() {
@@ -135,11 +136,11 @@ class ExpenseViewModel @Inject constructor(
     /** 🔹 Delete expense */
     fun deleteExpense(expense: ExpenseDM) = viewModelScope.launch {
         try {
-            repo.delete(Expense(
+            repo.delete(ExpenseEntity(
                 id = expense.id.toString().toLong(),
                 title = expense.title,
                 amount = expense.amount,
-                category = expense.category,
+//                category = expense.category,
                 notes = expense.notes,
                 receiptUri = expense.receiptUri.toString(),
                 timestamp = expense.timestamp

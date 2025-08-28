@@ -14,9 +14,8 @@ import java.util.UUID
 
 enum class Category { Staff, Travel, Food, Utility }
 
-@Entity(tableName = "expenses")
 data class Expense(
-    @PrimaryKey (autoGenerate = true) val id: Long = 0,
+    val id: Long = 0,
     val title: String = "",
     val amount: Double = 0.0,
     val category: String = "",
