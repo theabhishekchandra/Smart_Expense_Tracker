@@ -1,8 +1,12 @@
 package com.abhishek.smartexpensetracker.ui.screens.home
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -20,13 +24,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Money
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.CurrencyRupee
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,6 +47,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,7 +61,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,6 +88,7 @@ import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
 import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
 import com.abhishek.smartexpensetracker.ui.screens.staff.Role
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
+import kotlin.collections.take
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,6 +103,8 @@ fun HomeScreen(
     val currency by viewModel.currency.collectAsState()
     val isPremium by viewModel.isPremium.collectAsState()
     val isBusiness by viewModel.isBusiness.collectAsState()
+    val  borrowRecord by viewModel.borrowRecord.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
 
     val ctx = LocalContext.current
 
@@ -112,8 +129,8 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* notifications */ }) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = "Notifications")
+                    IconButton(onClick = { /* language */ }) {
+                        Icon(Icons.Outlined.Language, contentDescription = "Notifications")
                     }
                     IconButton(onClick = { /* menu */ }) {
                         Icon(Icons.Outlined.MoreVert, contentDescription = "More")
@@ -121,19 +138,84 @@ fun HomeScreen(
                 }
             )
         },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
+        /*floatingActionButton = {
+            *//*ExtendedFloatingActionButton(
                 onClick = { navManager?.navigate(ScreenRoutes.AddExpense.route) },
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
                 text = { Text("Add Expense") }
-            )
+            )*//*
+
+        },*/
+        floatingActionButton = {
+            Column(horizontalAlignment = Alignment.End) {
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    if (!isBusiness){
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            FabMenuItem(
+                                icon = Icons.Default.Person,
+                                text = "Add Expense",
+                                onClick = { expanded = false
+                                    navManager?.navigate(ScreenRoutes.AddExpense.route)/* Handle add person */ }
+                            )
+                            FabMenuItem(
+                                icon = Icons.Default.Money,
+                                text = "Add Income",
+                                onClick = { expanded = false /* Handle add transaction */ }
+                            )
+                            FabMenuItem(
+                                icon = Icons.Default.ShoppingCart,
+                                text = "Add Lender",
+                                onClick = { expanded = false /* Handle add expense */ }
+                            )
+                        }
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            FabMenuItem(
+                                icon = Icons.Default.Person,
+                                text = "Add Expense",
+                                onClick = { expanded = false
+                                navManager?.navigate(ScreenRoutes.AddExpense.route)/* Handle add person */ }
+                            )
+                            FabMenuItem(
+                                icon = Icons.Default.Money,
+                                text = "Add Sale",
+                                onClick = { expanded = false /* Handle add transaction */ }
+                            )
+                            FabMenuItem(
+                                icon = Icons.Default.ShoppingCart,
+                                text = "Add Lender",
+                                onClick = { expanded = false /* Handle add expense */ }
+                            )
+                        }
+                    }
+                }
+
+                // Main FAB
+                FloatingActionButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add"
+                    )
+                }
+            }
         },
         content = { padding ->
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .clickable{ expanded = false},
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
@@ -152,7 +234,8 @@ fun HomeScreen(
                         if (s.weeklyTrend.isNotEmpty()) item { WeeklyTrendCard(s.weeklyTrend, currency) }
                         if (s.approvalRecordList.isNotEmpty()) item { PendingApprovalsCard(s.approvalRecordList, currency) }
                         if (s.staffSpendingList.isNotEmpty()) item { StaffLeaderboardCard(s.staffSpendingList, currency) }
-
+                        if (s.staffSpendingList.isNotEmpty()) item { StaffPerformanceCard(s.staffSpendingList, currency!!) }
+                        item { OutstandingDuesCard(borrowRecord,currency!!) }
                     }
                     is HomeUiState.PersonalDashboard -> {
                         val s = state as HomeUiState.PersonalDashboard
@@ -160,6 +243,7 @@ fun HomeScreen(
                         item { IncomeVsExpenseCard(currency!!, s.monthlyExpense, s.monthlyIncome) }
                         if (s.categoryBreakdown.isNotEmpty()) item { CategoryBreakdownCard(s.categoryBreakdown, currency) }
                         if (s.budgetProgressList.isNotEmpty()) item { BudgetsCard(s.budgetProgressList, currency) }
+                        item { RecentTransactionsCard(s.recentExpenses,currency?: Currency.RUPEE) }
                     }
 
                 }
@@ -596,6 +680,15 @@ private fun QuickActionButton(label: String, icon: ImageVector, onClick: () -> U
     }
 }
 
+@Composable
+fun FabMenuItem(icon: ImageVector, text: String, onClick: () -> Unit) {
+    ExtendedFloatingActionButton(
+        icon = { Icon(icon, contentDescription = text) },
+        text = { Text(text) },
+        onClick = onClick
+    )
+}
+
 // ---------- REUSABLES ----------
 
 @Composable
@@ -664,6 +757,150 @@ private fun progressFrom(part: Double, total: Double): Float {
     if (total <= 0) return 0f
     return (part / total).toFloat().coerceIn(0f, 1f)
 }
+
+// ---------- NEW BUSINESS DASHBOARD CARDS ----------
+
+@Composable
+private fun TodaySalesExpenseCard(
+    sales: Double,
+    expense: Double,
+    currency: Currency
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Today’s Sales & Expenses", style = MaterialTheme.typography.titleMedium)
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                StatPill(title = "Sales", value = sales, currency = currency)
+                StatPill(title = "Expenses", value = expense, currency = currency)
+                StatPill(title = "Net", value = sales - expense, currency = currency)
+            }
+        }
+    }
+}
+
+@Composable
+private fun OutstandingDuesCard(
+    dues: List<BorrowerRecord>,
+    currency: Currency
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text("Outstanding Dues", style = MaterialTheme.typography.titleMedium)
+            if (dues.isEmpty()) {
+                Text("No dues pending 🎉", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                dues.take(5).forEach { record ->
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(record.borrowerName, fontWeight = FontWeight.Medium)
+                            Text(
+                                "Due: ${record.dueDate}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Text(
+                            "${currency.symbol}${record.borrowedAmount.roundToInt()}",
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                    HorizontalDivider()
+                }
+                if (dues.size > 5) {
+                    TextButton(onClick = { /* nav to full dues list */ }) {
+                        Text("View All")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StaffPerformanceCard(
+    staffStats: List<StaffSpending>,
+    currency: Currency
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text("Staff Performance", style = MaterialTheme.typography.titleMedium)
+            staffStats.take(5).forEach { staff ->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(staff.staffName, fontWeight = FontWeight.Medium)
+                    Text(
+                        "${currency.symbol}${staff.amount.roundToInt()}",
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                HorizontalDivider()
+            }
+        }
+    }
+}
+
+// ---------- PERSONAL DASHBOARD EXTRA CARD ----------
+
+@Composable
+private fun RecentTransactionsCard(
+    recent: List<ExpenseItem>,
+    currency: Currency
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text("Recent Transactions", style = MaterialTheme.typography.titleMedium)
+            if (recent.isEmpty()) {
+                Text("No recent transactions yet.", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                recent.take(5).forEach { item ->
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(item.title, fontWeight = FontWeight.Medium)
+                            Text(
+                                "${item.category} • ${item.time}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Text(
+                            "${currency.symbol}${item.amount.roundToInt()}",
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    HorizontalDivider()
+                }
+            }
+        }
+    }
+}
+
+
 
 // ---------- PREVIEW ----------
 

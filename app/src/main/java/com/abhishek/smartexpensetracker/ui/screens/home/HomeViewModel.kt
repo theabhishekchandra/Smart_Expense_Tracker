@@ -200,10 +200,81 @@ class HomeViewModel @Inject constructor(
     private val _isBusiness = MutableStateFlow(false)
     val isBusiness: StateFlow<Boolean> = _isBusiness.asStateFlow()
 
+    private val _borrowRecord = MutableStateFlow<List<BorrowerRecord>>(emptyList())
+    val borrowRecord: StateFlow<List<BorrowerRecord>> = _borrowRecord.asStateFlow()
+
+
     init {
         loadInitialData()
+        setBorrowData()
     }
 
+    fun setBorrowData(){
+        val dummyBorrowers = listOf(
+            BorrowerRecord(
+                id = 1,
+                borrowerName = "Ravi Sharma",
+                contactNumber = "9876543210",
+                email = "ravi.sharma@example.com",
+                address = "Delhi, India",
+                borrowedAmount = 5000.0,
+                amountPaid = 2000.0,
+                dueDate = "2025-09-10",
+                interestRate = 5.0f,
+                notes = "Personal loan for bike purchase",
+                reminderType = "SMS",
+                reminderFrequency = "Weekly"
+            ),
+            BorrowerRecord(
+                id = 2,
+                borrowerName = "Anjali Gupta",
+                contactNumber = "9123456780",
+                borrowedAmount = 15000.0,
+                amountPaid = 15000.0,
+                dueDate = "2025-08-20",
+                notes = "Wedding expenses",
+                reminderType = "Notification",
+                reminderFrequency = "Before Due Date",
+                isSettled = true
+            ),
+            BorrowerRecord(
+                id = 3,
+                borrowerName = "Mohit Verma",
+                contactNumber = "9898989898",
+                email = "mohitv@gmail.com",
+                borrowedAmount = 8000.0,
+                amountPaid = 1000.0,
+                dueDate = "2025-09-30",
+                interestRate = 10.0f,
+                notes = "Business investment",
+                reminderType = "WhatsApp",
+                reminderFrequency = "Daily"
+            ),
+            BorrowerRecord(
+                id = 4,
+                borrowerName = "Priya Singh",
+                borrowedAmount = 12000.0,
+                amountPaid = 0.0,
+                dueDate = "2025-10-15",
+                notes = "Friend loan",
+                reminderEnabled = false
+            ),
+            BorrowerRecord(
+                id = 5,
+                borrowerName = "Amit Kumar",
+                contactNumber = "7001234567",
+                borrowedAmount = 2000.0,
+                amountPaid = 500.0,
+                dueDate = "2025-08-28",
+                interestRate = 2.5f,
+                notes = "Medical emergency",
+                reminderType = "Notification",
+                reminderFrequency = "Daily"
+            )
+        )
+        _borrowRecord.value = dummyBorrowers
+
+    }
     fun loadInitialData() {
         viewModelScope.launch {
             try {

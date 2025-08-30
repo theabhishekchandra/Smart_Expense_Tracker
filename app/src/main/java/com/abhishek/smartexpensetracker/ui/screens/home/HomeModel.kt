@@ -86,3 +86,28 @@ sealed interface HomeAction {
     data class OpenExpense(val id: String) : HomeAction
     data class ApplyImprovement(val title: String) : HomeAction
 }
+
+data class BorrowerRecord(
+    val id: Int = 0,                          // Unique ID for local DB (Room / SQLite)
+    val borrowerName: String,                 // Name of the borrower
+    val contactNumber: String? = null,        // Phone number (optional, can fetch from contacts)
+    val email: String? = null,                // Email (optional)
+    val address: String? = null,              // Address of borrower (optional)
+
+    val borrowedAmount: Double,               // Total borrowed amount
+    val amountPaid: Double = 0.0,             // Amount already paid
+    val balanceAmount: Double = borrowedAmount - amountPaid, // Remaining balance (calculated)
+
+    val dueDate: String? = null,              // Due date for repayment
+    val interestRate: Float? = null,          // Optional interest rate (if applied)
+    val notes: String? = null,                // Extra notes (reason, product details, etc.)
+
+    val createdAt: Long = System.currentTimeMillis(),  // Record creation timestamp
+    val updatedAt: Long = System.currentTimeMillis(),  // Last update timestamp
+
+    val reminderEnabled: Boolean = true,      // Whether reminders are enabled
+    val reminderType: String? = null,         // e.g., "SMS", "WhatsApp", "Notification"
+    val reminderFrequency: String? = null,    // e.g., "Daily", "Weekly", "Before Due Date"
+
+    val isSettled: Boolean = false            // If borrower fully paid the loan
+)
