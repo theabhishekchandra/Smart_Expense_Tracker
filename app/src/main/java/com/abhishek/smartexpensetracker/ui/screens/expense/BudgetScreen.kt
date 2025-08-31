@@ -15,12 +15,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
 
 @Composable
 fun BudgetScreen() {
     var budgetType by remember { mutableStateOf("Monthly") } // Monthly / Weekly
-    var budgetAmount by remember { mutableStateOf(20000) }   // Budget set
-    var spentAmount by remember { mutableStateOf(15999) }    // Spent amount
+    var budgetAmount by remember { mutableIntStateOf(20000) }   // Budget set
+    var spentAmount by remember { mutableIntStateOf(15999) }    // Spent amount
 
     val progress = (spentAmount.toFloat() / budgetAmount.toFloat()).coerceAtMost(1f)
 
@@ -38,8 +39,14 @@ fun BudgetScreen() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Budget Tracker", fontWeight = FontWeight.Bold) }
+            FinanceTopBar(
+                title = "Budget Tracker",
+                showBackButton = true,
+                showSearch = false,
+                showFilter = false,
+                showNotifications = false,
+                showMenu = false,
+                onBackClick = {/*TODO: Implement Back Button.*/}
             )
         }
     ) { padding ->

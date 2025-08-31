@@ -1,6 +1,11 @@
-package com.abhishek.smartexpensetracker.data.repository
+package com.abhishek.smartexpensetracker.data.repository.local
 
 import com.abhishek.smartexpensetracker.data.local.room.*
+import com.abhishek.smartexpensetracker.data.local.room.dao.AllocationDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.StaffDao
+import com.abhishek.smartexpensetracker.data.local.room.entity.StaffEntity
+import com.abhishek.smartexpensetracker.data.local.room.entity.StaffExpenseSummary
+import com.abhishek.smartexpensetracker.data.local.room.entity.StaffWithAllocations
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -13,7 +18,7 @@ interface IStaffRepository {
     suspend fun getStaffById(id: Long): StaffEntity?
     suspend fun getStaffByEmail(email: String): StaffEntity?
     suspend fun searchStaff(query: String): List<StaffEntity>
-    suspend fun getStaffWithExpenseSummary(): List<StaffExpenseSummary>
+//    suspend fun getStaffWithExpenseSummary(): List<StaffExpenseSummary>
     suspend fun countAllStaff(): Int
     suspend fun deactivateStaff(id: Long)
     suspend fun activateStaff(id: Long)
@@ -33,10 +38,12 @@ class StaffRepository @Inject constructor(
     override suspend fun getStaffById(id: Long): StaffEntity? = dao.getStaffById(id)
     override suspend fun getStaffByEmail(email: String): StaffEntity? = dao.getStaffByEmail(email)
     override suspend fun searchStaff(query: String): List<StaffEntity> = dao.searchStaff(query)
-    override suspend fun getStaffWithExpenseSummary(): List<StaffExpenseSummary> = dao.getStaffWithExpenseSummary()
+//    override suspend fun getStaffWithExpenseSummary(): List<StaffExpenseSummary> = dao.getStaffWithExpenseSummary()
     override suspend fun countAllStaff(): Int = dao.countAllStaff()
     override suspend fun deactivateStaff(id: Long) = dao.deactivateStaff(id)
     override suspend fun activateStaff(id: Long) = dao.activateStaff(id)
+//    override fun observeExpenseSummary(ownerUserId: Long): Flow<List<StaffExpenseSummary>> =
+//        dao.getStaffExpenseSummary(ownerUserId)
 
     override suspend fun getStaffWithAllocations(staffId: Long): StaffWithAllocations? {
         // Simple implementation: read staff + allocations and map

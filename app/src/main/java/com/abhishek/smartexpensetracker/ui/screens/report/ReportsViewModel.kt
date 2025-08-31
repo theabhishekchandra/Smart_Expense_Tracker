@@ -9,7 +9,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-open class ReportsViewModel : ViewModel() {
+open class ReportsViewModel : ViewModel(
+//    private val reportRepository: ReportRepository
+) {
 
     // Mutable state flow for UI
     private val _reportsState = MutableStateFlow(ReportsUiState())

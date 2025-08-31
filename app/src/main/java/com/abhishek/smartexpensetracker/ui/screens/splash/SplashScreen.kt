@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import com.abhishek.smartexpensetracker.R
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
@@ -36,7 +38,7 @@ fun SplashScreen(
     val scaleAnim = animateFloatAsState(
         targetValue = scale,
         animationSpec = tween(
-            durationMillis = 1000,
+            durationMillis = 2000,
             easing = { OvershootInterpolator(2f).getInterpolation(it) }
         ), label = "scaleAnimation"
     )
@@ -60,12 +62,19 @@ fun SplashScreen(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground), // Replace with your logo
+                painter = painterResource(id = R.drawable.ic_logo),
                 contentDescription = "App Logo",
                 modifier = Modifier
-                    .size(120.dp)
+                    .padding(80.dp)
+                    .fillMaxSize()
                     .scale(scaleAnim.value)
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewSplashScreen() {
+    SplashScreen(null)
 }

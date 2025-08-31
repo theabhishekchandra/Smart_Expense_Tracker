@@ -1,20 +1,21 @@
-package com.abhishek.smartexpensetracker.data.local.room
+package com.abhishek.smartexpensetracker.data.local.room.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.abhishek.smartexpensetracker.data.local.room.entity.NotificationEntity
 
 @Dao
 interface NotificationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertNotification(notification: Notification)
+    suspend fun insertNotification(notification: NotificationEntity)
 
     @Query("SELECT * FROM notifications WHERE userId = :userId ORDER BY createdAt DESC")
-    suspend fun getNotificationsForUser(userId: Long): List<Notification>
+    suspend fun getNotificationsForUser(userId: Long): List<NotificationEntity>
 
-    @Query("UPDATE notifications SET isRead = 1 WHERE id = :id")
+    @Query("UPDATE notifications SET isRead = 1 WHERE notificationId = :id")
     suspend fun markAsRead(id: Long)
 
     @Query("DELETE FROM notifications WHERE createdAt < :cutoff")

@@ -3,7 +3,24 @@ package com.abhishek.smartexpensetracker.core.di
 import android.content.Context
 import androidx.room.Room
 import com.abhishek.smartexpensetracker.data.local.room.*
+import com.abhishek.smartexpensetracker.data.local.room.dao.AllocationDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.BudgetDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.CategoryDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.ExpenseDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.IncomeDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.LendingDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.NotificationDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.RepaymentDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.StaffDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.SyncLogDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.UserDao
 import com.abhishek.smartexpensetracker.data.repository.*
+import com.abhishek.smartexpensetracker.data.repository.local.CategoryRepository
+import com.abhishek.smartexpensetracker.data.repository.local.ICategoryRepository
+import com.abhishek.smartexpensetracker.data.repository.local.IStaffRepository
+import com.abhishek.smartexpensetracker.data.repository.local.IUserRepository
+import com.abhishek.smartexpensetracker.data.repository.local.StaffRepository
+import com.abhishek.smartexpensetracker.data.repository.local.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -60,6 +77,22 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideStaffDao(db: AppDatabase): StaffDao = db.staffDao()
+
+    @Provides
+    @Singleton
+    fun provideContactDao(db: AppDatabase): CategoryDao = db.categoryDao()
+
+    @Provides
+    @Singleton
+    fun provideIncomeDao(db: AppDatabase): IncomeDao = db.incomeDao()
+
+    @Provides
+    @Singleton
+    fun provideLendingDao(db: AppDatabase): LendingDao = db.lendingDao()
+
+    @Provides
+    @Singleton
+    fun provideRepaymentDao(db: AppDatabase): RepaymentDao = db.repaymentDao()
 
     // ---------- Repositories ----------
 

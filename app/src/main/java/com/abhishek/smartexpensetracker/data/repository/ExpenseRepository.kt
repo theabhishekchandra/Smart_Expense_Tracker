@@ -1,9 +1,8 @@
 package com.abhishek.smartexpensetracker.data.repository
 
-import com.abhishek.smartexpensetracker.data.local.room.ExpenseDao
-import com.abhishek.smartexpensetracker.data.local.room.ExpenseEntity
+import com.abhishek.smartexpensetracker.data.local.room.dao.ExpenseDao
+import com.abhishek.smartexpensetracker.data.local.room.entity.ExpenseEntity
 import com.abhishek.smartexpensetracker.data.model.DateFilter
-import com.abhishek.smartexpensetracker.data.model.Expense
 import kotlinx.coroutines.flow.Flow
 import java.util.Calendar
 import javax.inject.Inject
@@ -18,8 +17,6 @@ class ExpenseRepository @Inject constructor(
     override suspend fun delete(expense: ExpenseEntity) = dao.delete(expense)
     override suspend fun totalForDayRange(dayStart: Long, dayEnd: Long): Double = dao.totalForDayRange(dayStart, dayEnd) ?: 0.0
     override suspend fun getUnsynced(): List<ExpenseEntity> = dao.getUnsynced()
-
-
     override fun getExpensesByFilter(filter: DateFilter): Flow<List<ExpenseEntity>> {
         val cal = Calendar.getInstance()
 
@@ -57,6 +54,28 @@ class ExpenseRepository @Inject constructor(
             }
         }
     }
+
+
+//    fun observeById(id: Long): Flow<ExpenseEntity?> = expenseDao.getById(id)
+//
+//    fun observeAllForUser(userId: Long): Flow<List<ExpenseEntity>> =
+//        expenseDao.getAllForUser(userId)
+//
+//    fun observeForDate(userId: Long, date: Long): Flow<List<ExpenseEntity>> =
+//        expenseDao.getForDate(userId, date)
+//
+//    fun observeMonthlyTrend(userId: Long, from: Long, to: Long): Flow<List<MonthlyExpenseTrend>> =
+//        expenseDao.getMonthlyExpenseTrend(userId, from, to)
+//
+//    fun observeCategorySpending(userId: Long, from: Long, to: Long): Flow<List<CategorySpendingSummary>> =
+//        expenseDao.getCategoryWiseSpending(userId, from, to)
+//
+//    fun observeStaffUsage(from: Long, to: Long): Flow<List<StaffUsageSummary>> =
+//        expenseDao.getTotalUsedByStaff(from, to)
+//
+//    suspend fun sumForPeriod(userId: Long, from: Long, to: Long): Double =
+//        expenseDao.getSumForPeriod(userId, from, to)
+
 }
 
 interface IExpenseRepository {

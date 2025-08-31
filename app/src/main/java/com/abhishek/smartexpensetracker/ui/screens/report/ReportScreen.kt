@@ -1,9 +1,11 @@
 package com.abhishek.smartexpensetracker.ui.screens.report
 
+import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,18 +28,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.data.model.Expense
 import com.abhishek.smartexpensetracker.data.model.UserRole
 import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
-
-
-/* ---------------- Screen ---------------- */
+import com.abhishek.smartexpensetracker.ui.screens.expense.ExpenseCategory
+import kotlin.collections.forEach
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.roundToInt
+import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -45,12 +53,12 @@ fun ReportsScreen(
     navManager: NavManager?,
     isBusinessMode: Boolean,
     userRole: UserRole,
-    reportsViewModel: ReportsViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+    reportsViewModel: ReportsViewModel = hiltViewModel()
 ) {
     val uiState by reportsViewModel.reportsState.collectAsState()
 
     var searchQuery by remember { mutableStateOf("") }
-    var chartMode by remember { mutableStateOf(true) } // toggle between table & charts
+    var chartMode by remember { mutableStateOf(true) }
 
     BaseScaffold(
         navManager = navManager,
@@ -659,3 +667,93 @@ data class ReportsUiState(
     val expenses: List<Expense> = emptyList(),
     val aiInsights: List<String> = listOf("You spent 20% more on Travel this month.", "Food category is your highest expense.")
 )
+
+
+@Composable
+fun DonutChart(
+    categories: List<ExpenseCategory>,
+    totalExpense: Int,
+    onSliceClicked: (ExpenseCategory) -> Unit,
+    selectedCategory: ExpenseCategory?,
+    showPercentage: Boolean
+) {
+    Canvas(
+        modifier = Modifier
+            .size(260.dp)
+            .pointerInput(true) {
+                detectTapGestures { offset ->
+                    val center = size.width / 2f
+                    val dx = offset.x - center
+                    val dy = offset.y - center
+                    val angle = (atan2(dy, dx) * (180f / Math.PI)).toFloat() + 180f
+
+                    var startAngle = -90f
+                    categories.forEach { category ->
+                        val sweep = (category.percentage / 100f) * 360f
+                        val endAngle = startAngle + sweep
+                        if (angle in startAngle..endAngle) {
+                            onSliceClicked(category)
+                            return@detectTapGestures
+                        }
+                        startAngle += sweep
+                    }
+                }
+            }
+    ) {
+        var startAngle = -90f
+        val chartSize = size.minDimension
+
+        categories.forEach { category ->
+            val sweep = (category.percentage / 100f) * 360f
+            val isSelected = category == selectedCategory
+            val pushOut = if (isSelected) 20f else 0f
+            val angleRad = Math.toRadians((startAngle + sweep / 2).toDouble())
+
+            translate(
+                left = (cos(angleRad) * pushOut).toFloat(),
+                top = (sin(angleRad) * pushOut).toFloat()
+            ) {
+                drawArc(
+                    color = category.color,
+                    startAngle = startAngle,
+                    sweepAngle = sweep,
+                    useCenter = true,
+                    size = Size(chartSize, chartSize)
+                )
+
+                if (isSelected) {
+                    val radius = chartSize / 2f + 30f
+                    val textX = (cos(angleRad) * radius + chartSize / 2f)
+                    val textY = (sin(angleRad) * radius + chartSize / 2f)
+
+                    val label = if (showPercentage) {
+                        "${category.percentage}%"
+                    } else {
+                        val amount = (totalExpense * category.percentage / 100).roundToInt()
+                        "₹$amount"
+                    }
+
+                    drawContext.canvas.nativeCanvas.drawText(
+                        label,
+                        textX.toFloat(),
+                        textY.toFloat(),
+                        Paint().apply {
+                            color = android.graphics.Color.BLACK
+                            textSize = 36f
+                            textAlign = Paint.Align.CENTER
+                            isFakeBoldText = true
+                        }
+                    )
+                }
+            }
+            startAngle += sweep
+        }
+
+        // Donut hole
+        drawCircle(
+            color = Color.White,
+            radius = chartSize / 7f,
+            center = Offset(chartSize / 2f, chartSize / 2f)
+        )
+    }
+}

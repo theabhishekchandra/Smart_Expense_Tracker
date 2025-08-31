@@ -1,8 +1,8 @@
 package com.abhishek.smartexpensetracker.data.repository
 
-import com.abhishek.smartexpensetracker.data.local.room.BudgetDao
-import com.abhishek.smartexpensetracker.data.local.room.BudgetEntity
-import com.abhishek.smartexpensetracker.data.local.room.BudgetWithUtilization
+import com.abhishek.smartexpensetracker.data.local.room.dao.BudgetDao
+import com.abhishek.smartexpensetracker.data.local.room.entity.BudgetEntity
+import com.abhishek.smartexpensetracker.data.local.room.entity.BudgetWithUtilization
 import javax.inject.Inject
 
 interface IBudgetRepository {
@@ -19,4 +19,11 @@ class BudgetRepository @Inject constructor(
     override suspend fun getBudgetsForUser(userId: Long): List<BudgetEntity> = dao.getBudgetsForUser(userId)
     override suspend fun getBudgetUtilization(userId: Long): List<BudgetWithUtilization> = dao.getBudgetUtilization(userId)
     override suspend fun archiveBudget(budgetId: Long) = dao.archiveBudget(budgetId)
+
+//    suspend fun upsert(budget: BudgetEntity): Long = budgetDao.insert(budget)
+//    suspend fun update(budget: BudgetEntity) = budgetDao.update(budget)
+//    suspend fun delete(budget: BudgetEntity) = budgetDao.delete(budget)
+//
+//    fun observeById(id: Long) = budgetDao.getById(id)
+//    fun observeUtilization(): Flow<List<BudgetWithUtilization>> = budgetDao.getBudgetUtilization()
 }

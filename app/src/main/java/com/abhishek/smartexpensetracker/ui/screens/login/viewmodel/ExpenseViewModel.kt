@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abhishek.smartexpensetracker.core.datastore.ThemeType
 import com.abhishek.smartexpensetracker.core.datastore.AppPreferencesRepository
-import com.abhishek.smartexpensetracker.data.local.room.ExpenseEntity
+import com.abhishek.smartexpensetracker.data.local.room.entity.ExpenseEntity
 import com.abhishek.smartexpensetracker.data.model.DateFilter
 import com.abhishek.smartexpensetracker.data.model.Expense
 import com.abhishek.smartexpensetracker.data.model.ExpenseDM
@@ -136,15 +136,17 @@ class ExpenseViewModel @Inject constructor(
     /** 🔹 Delete expense */
     fun deleteExpense(expense: ExpenseDM) = viewModelScope.launch {
         try {
-            repo.delete(ExpenseEntity(
-                id = expense.id.toString().toLong(),
-                title = expense.title,
-                amount = expense.amount,
+            repo.delete(
+                ExpenseEntity(
+                    expenseId = expense.id.toString().toLong(),
+                    title = expense.title,
+                    amount = expense.amount,
 //                category = expense.category,
-                notes = expense.notes,
-                receiptUri = expense.receiptUri.toString(),
-                timestamp = expense.timestamp
-            ))
+                    notes = expense.notes,
+                    receiptUri = expense.receiptUri.toString(),
+                    timestamp = expense.timestamp
+                )
+            )
             _uiState.update { state ->
                 state.copy(
                     expenses = state.expenses.filter { it.id != expense.id }

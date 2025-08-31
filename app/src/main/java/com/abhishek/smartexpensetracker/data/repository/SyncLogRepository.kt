@@ -1,12 +1,12 @@
 package com.abhishek.smartexpensetracker.data.repository
 
-import com.abhishek.smartexpensetracker.data.local.room.SyncLog
-import com.abhishek.smartexpensetracker.data.local.room.SyncLogDao
+import com.abhishek.smartexpensetracker.data.local.room.dao.SyncLogDao
+import com.abhishek.smartexpensetracker.data.local.room.entity.SyncLogEntity
 import javax.inject.Inject
 
 interface ISyncLogRepository {
-    suspend fun insertLog(syncLog: SyncLog)
-    suspend fun getPendingSync(): List<SyncLog>
+    suspend fun insertLog(syncLog: SyncLogEntity)
+    suspend fun getPendingSync(): List<SyncLogEntity>
     suspend fun markAsSynced(id: Long)
     suspend fun incrementRetry(id: Long)
 }
@@ -14,8 +14,9 @@ interface ISyncLogRepository {
 class SyncLogRepository @Inject constructor(
     private val dao: SyncLogDao
 ) : ISyncLogRepository {
-    override suspend fun insertLog(syncLog: SyncLog) = dao.insertLog(syncLog)
-    override suspend fun getPendingSync(): List<SyncLog> = dao.getPendingSync()
+    override suspend fun insertLog(syncLog: SyncLogEntity) = dao.insertLog(syncLog)
+    override suspend fun getPendingSync(): List<SyncLogEntity> = dao.getPendingSync()
+//    fun observePending(): Flow<List<SyncLog>> = syncLogDao.getPendingSyncs()
     override suspend fun markAsSynced(id: Long) = dao.markAsSynced(id)
     override suspend fun incrementRetry(id: Long) = dao.incrementRetry(id)
 }

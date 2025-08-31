@@ -1,9 +1,11 @@
-package com.abhishek.smartexpensetracker.data.local.room
+package com.abhishek.smartexpensetracker.data.local.room.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.abhishek.smartexpensetracker.data.local.room.entity.BudgetEntity
+import com.abhishek.smartexpensetracker.data.local.room.entity.BudgetWithUtilization
 
 @Dao
 interface BudgetDao {
@@ -23,6 +25,6 @@ interface BudgetDao {
     """)
     suspend fun getBudgetUtilization(userId: Long): List<BudgetWithUtilization>
 
-    @Query("UPDATE budgets SET status = 'Archived' WHERE id = :budgetId")
+    @Query("UPDATE budgets SET status = 'Archived' WHERE budgetId = :budgetId")
     suspend fun archiveBudget(budgetId: Long)
 }
