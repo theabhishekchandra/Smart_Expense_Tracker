@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalPagerApi::class)
-
 package com.abhishek.smartexpensetracker.ui.screens.splash
 
 import androidx.compose.foundation.Image
@@ -14,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,30 +27,30 @@ fun OnboardingScreen(onFinish: () -> Unit) {
     val pages = listOf(
         OnboardingPage(
             title = "Track Expenses Easily",
-            description = "Keep your expenses organized with ease.",
-            image = R.drawable.ic_apple, // replace with your illustration
+            description = "Add, monitor, and manage your daily expenses in seconds.",
+            image = R.drawable.ic_track_expense_easily,
         ),
         OnboardingPage(
             title = "Smart AI Insights",
-            description = "Get AI powered insights and suggestions.",
-            image = R.drawable.ic_facebook // replace with your illustration
+            description = "Get personalized tips and insights powered by AI.",
+            image = R.drawable.ic_smart_ai_insight
         ),
         OnboardingPage(
             title = "Switch Personal & Business Mode",
-            description = "Use one app for both personal and business.",
-            image = R.drawable.ic_google // replace with your illustration
+            description = "Easily manage personal and business finances with a single tap.",
+            image = R.drawable.ic_switch_business_mode
         ),
         OnboardingPage(
             title = "Stay in Control",
-            description = "Never miss a due date with reminders.",
-            image = R.drawable.ic_upi // replace with your illustration
+            description = "Never miss payments or updates with smart reminders.",
+            image = R.drawable.ic_stay_in_control
         )
     )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(color = Color(0xFFDAE0FB))
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -60,8 +59,10 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = onFinish) {
-                Text("Skip", color = Color.Gray)
+            TextButton(
+                onClick = onFinish
+            ) {
+                Text("Skip", color = Color.DarkGray)
             }
         }
 
@@ -74,7 +75,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             OnboardingPageUI(page = pages[page])
         }
 
-        // Dots + Next/Finish
+        // Back + Dots + Next/Finish
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -139,12 +140,13 @@ fun OnboardingPageUI(page: OnboardingPage) {
         Image(
             painter = painterResource(id = page.image),
             contentDescription = page.title,
-            modifier = Modifier.size(220.dp)
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = page.title,
             fontSize = 22.sp,
+            textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
             color = Color.Black
         )
@@ -153,6 +155,7 @@ fun OnboardingPageUI(page: OnboardingPage) {
             text = page.description,
             fontSize = 16.sp,
             color = Color.Gray,
+            textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp),
             lineHeight = 20.sp
         )
