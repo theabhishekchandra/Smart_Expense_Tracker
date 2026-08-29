@@ -41,9 +41,6 @@ import com.abhishek.spendly.ui.theme.SuccessColorDark
 @Composable
 fun ProfileScreen(
     navManager: NavManager? = null,
-    name: String,
-    email: String,
-    profileImage: String?,
     onEditProfile: () -> Unit,
     onEditBusinessDetails: () -> Unit,
     settingsViewModel: SettingsViewModel = hiltViewModel()
@@ -52,6 +49,11 @@ fun ProfileScreen(
     val prefs by settingsViewModel.userPreferences.collectAsState()
     val isPremium by settingsViewModel.isPremium.collectAsState(initial = false)
     val premiumType by settingsViewModel.premiumType.collectAsState(initial = PremiumType.BASIC)
+    val profile by settingsViewModel.profileInfo.collectAsState()
+    val business by settingsViewModel.businessInfo.collectAsState()
+    val name = profile.name
+    val email = profile.email
+    val profileImage = profile.profileImage
 
     val loader by settingsViewModel.loader.collectAsState()
     val toastMessage by settingsViewModel.toastMessage.collectAsState(initial = "")
@@ -195,9 +197,21 @@ fun ProfileScreen(
                     Column(modifier = Modifier.padding(AppSpacing.md)) {
                         Text("Business Details", style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(AppSpacing.sm))
-                        Text("Business Name: My Company Pvt Ltd", style = MaterialTheme.typography.bodyMedium)
-                        Text("GST Number: 22AAAAA0000A1Z5", style = MaterialTheme.typography.bodyMedium)
-                        Text("Business Email: support@company.com", style = MaterialTheme.typography.bodyMedium)
+                        if (business.businessName.isBlank()) {
+                            Text(
+                                "No business details added yet",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            Text("Business Name: ${business.businessName}", style = MaterialTheme.typography.bodyMedium)
+                            if (business.ownerName.isNotBlank()) {
+                                Text("Owner: ${business.ownerName}", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            if (business.email.isNotBlank()) {
+                                Text("Business Email: ${business.email}", style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
                         Spacer(modifier = Modifier.height(AppSpacing.sm))
                         OutlinedButton(
                             onClick = onEditBusinessDetails,
@@ -267,9 +281,6 @@ fun ProfileOption(text: String, icon: ImageVector, onClick: () -> Unit) {
 @Composable
 private fun PreviewProfileScreen() {
     ProfileScreen(
-        name = "Abhishek Chandra",
-        email = "ac927920@gmail.com",
-        profileImage = null,
         onEditProfile = {},
         onEditBusinessDetails = {}
     )

@@ -207,6 +207,27 @@ class HomeViewModel @Inject constructor(
     init {
         loadInitialData()
         setBorrowData()
+        observeUserName()
+    }
+
+    /**
+     * The dashboard's user name is otherwise loaded once in [loadInitialData]. This keeps it
+     * live so an edit made on the Profile screen (which writes to the same preference) is
+     * reflected here too, without a full app restart.
+     */
+    private fun observeUserName() {
+        viewModelScope.launch {
+            appPref.userNameFlow.collect { newName ->
+                _userName.value = newName
+                _uiState.update { state ->
+                    when (state) {
+                        is HomeUiState.PersonalDashboard -> state.copy(userName = newName)
+                        is HomeUiState.BusinessDashboard -> state.copy(userName = newName)
+                        else -> state
+                    }
+                }
+            }
+        }
     }
 
     fun setBorrowData(){

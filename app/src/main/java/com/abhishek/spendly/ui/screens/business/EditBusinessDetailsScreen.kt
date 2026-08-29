@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.abhishek.spendly.core.datastore.Currency
 import com.abhishek.spendly.core.navigation.NavManager
 import com.abhishek.spendly.ui.components.FinanceTopBar
 import com.abhishek.spendly.ui.components.LabeledTextField
@@ -29,6 +30,8 @@ fun EditBusinessDetailsScreen(
     currentBusinessLogo: String?,
     currentEmail: String,
     currentPhone: String,
+    currentBusinessType: String = "Retail",
+    currentCurrency: String = Currency.RUPEE.value,
     onSave: (
         String, String, String?, String, String, String, String
     ) -> Unit,
@@ -39,14 +42,14 @@ fun EditBusinessDetailsScreen(
     var logoUrl by remember { mutableStateOf(currentBusinessLogo ?: "") }
     var email by remember { mutableStateOf(currentEmail) }
     var phone by remember { mutableStateOf(currentPhone) }
-    var businessType by remember { mutableStateOf("Retail") }
-    var currency by remember { mutableStateOf("INR") }
+    var businessType by remember { mutableStateOf(currentBusinessType.ifBlank { "Retail" }) }
+    var currency by remember { mutableStateOf(currentCurrency.ifBlank { Currency.RUPEE.value }) }
 
     var businessTypeExpanded by remember { mutableStateOf(false) }
     var currencyExpanded by remember { mutableStateOf(false) }
 
     val businessTypes = listOf("Retail", "Restaurant", "Service", "Freelancer", "Other")
-    val currencyOptions = listOf("INR", "USD", "EUR", "GBP")
+    val currencyOptions = Currency.entries.map { it.value }
 
     Scaffold(
         topBar = {

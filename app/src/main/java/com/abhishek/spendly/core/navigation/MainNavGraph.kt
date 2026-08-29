@@ -91,40 +91,57 @@ fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
     composable(ScreenRoutes.Profile.route) {
         ProfileScreen(
             navManager = navManager,
-            name = "Abhishek Chandra",
-            email = "ac927920@gmail.com",
-            profileImage = "https://via.placeholder.com/150",
-            onEditProfile = {},
-            onEditBusinessDetails = {}
+            onEditProfile = { navManager.navigate(ScreenRoutes.EditProfile.route) },
+            onEditBusinessDetails = { navManager.navigate(ScreenRoutes.EditBusinessDetails.route) }
         )
     }
 
-    composable(ScreenRoutes.EditProfile.route) {
+    composable(ScreenRoutes.EditProfile.route) { navBackStackEntry ->
+        val viewModel: SettingsViewModel = hiltViewModel(navBackStackEntry)
+        val profile by viewModel.profileInfo.collectAsState()
+        val prefs by viewModel.userPreferences.collectAsState()
+
         EditProfileScreen(
             navManager = navManager,
-            currentName = "Abhishek Chandra",
-            currentEmail = "ac927920@gmail.com",
-            currentProfileImage = "https://via.placeholder.com/150",
+            currentName = profile.name,
+            currentEmail = profile.email,
+            currentProfileImage = profile.profileImage,
+            currentPhone = profile.phone,
+            currentDob = profile.dob,
+            currentGender = profile.gender,
+            currentCurrency = prefs.currency.value,
             onSave = { name, email, profileUrl, phone, dob, gender, currency ->
-                // Handle save logic here
+                viewModel.saveProfile(name, email, profileUrl, phone, dob, gender, currency)
+                navManager.navigateBack()
             },
             onCancel = {
-                // Handle cancel logic here
+                navManager.navigateBack()
             }
         )
     }
 
     // Business Section
-    composable(ScreenRoutes.EditBusinessDetails.route) {
+    composable(ScreenRoutes.EditBusinessDetails.route) { navBackStackEntry ->
+        val viewModel: SettingsViewModel = hiltViewModel(navBackStackEntry)
+        val business by viewModel.businessInfo.collectAsState()
+        val prefs by viewModel.userPreferences.collectAsState()
+
         EditBusinessDetailsScreen(
             navManager = navManager,
-            currentBusinessName = "Smart Traders",
-            currentOwnerName = "Abhishek Chandra",
-            currentBusinessLogo = "https://via.placeholder.com/150",
-            currentEmail = "business@example.com",
-            currentPhone = "+91 9876543210",
-            onSave = { _, _, _, _, _, _, _ -> },
-            onCancel = {}
+            currentBusinessName = business.businessName,
+            currentOwnerName = business.ownerName,
+            currentBusinessLogo = business.logoUrl,
+            currentEmail = business.email,
+            currentPhone = business.phone,
+            currentBusinessType = business.businessType,
+            currentCurrency = prefs.currency.value,
+            onSave = { businessName, ownerName, logoUrl, email, phone, businessType, currency ->
+                viewModel.saveBusinessProfile(businessName, ownerName, logoUrl, email, phone, businessType, currency)
+                navManager.navigateBack()
+            },
+            onCancel = {
+                navManager.navigateBack()
+            }
         )
     }
 

@@ -61,6 +61,32 @@ class AppPreferencesDataSource @Inject constructor(
     val emailAlertsFlow: Flow<Boolean> = dataStore.data
         .map { prefs -> prefs[PreferencesKeys.EMAIL_ALERTS] ?: true }
 
+    val userNameFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.USER_NAME] ?: "Guest User" }
+    val userEmailFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.USER_EMAIL] ?: "" }
+    val userPhoneFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.USER_PHONE] ?: "" }
+    val userProfileImageFlow: Flow<String?> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.USER_PROFILE_IMAGE] }
+    val userDobFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.USER_DOB] ?: "" }
+    val userGenderFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.USER_GENDER] ?: "" }
+
+    val businessNameFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.BUSINESS_NAME] ?: "" }
+    val businessOwnerNameFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.BUSINESS_OWNER_NAME] ?: "" }
+    val businessLogoFlow: Flow<String?> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.BUSINESS_LOGO] }
+    val businessEmailFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.BUSINESS_EMAIL] ?: "" }
+    val businessPhoneFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.BUSINESS_PHONE] ?: "" }
+    val businessTypeFlow: Flow<String> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.BUSINESS_TYPE] ?: "" }
+
 
     override suspend fun setThemeMode(mode: ThemeType) {
         dataStore.edit { prefs -> prefs[THEME_MODE] = mode.value }
@@ -150,4 +176,53 @@ class AppPreferencesDataSource @Inject constructor(
     override suspend fun getUserNameOnce(): String =
         dataStore.data.map { it[PreferencesKeys.USER_NAME] ?: "Guest User"}.first()
 
+    override suspend fun setUserEmail(email: String) {
+        dataStore.edit { it[PreferencesKeys.USER_EMAIL] = email }
+    }
+
+    override suspend fun setUserPhone(phone: String) {
+        dataStore.edit { it[PreferencesKeys.USER_PHONE] = phone }
+    }
+
+    override suspend fun setUserProfileImage(uri: String?) {
+        dataStore.edit {
+            if (uri.isNullOrBlank()) it.remove(PreferencesKeys.USER_PROFILE_IMAGE)
+            else it[PreferencesKeys.USER_PROFILE_IMAGE] = uri
+        }
+    }
+
+    override suspend fun setUserDob(dob: String) {
+        dataStore.edit { it[PreferencesKeys.USER_DOB] = dob }
+    }
+
+    override suspend fun setUserGender(gender: String) {
+        dataStore.edit { it[PreferencesKeys.USER_GENDER] = gender }
+    }
+
+    override suspend fun setBusinessName(name: String) {
+        dataStore.edit { it[PreferencesKeys.BUSINESS_NAME] = name }
+    }
+
+    override suspend fun setBusinessOwnerName(name: String) {
+        dataStore.edit { it[PreferencesKeys.BUSINESS_OWNER_NAME] = name }
+    }
+
+    override suspend fun setBusinessLogo(uri: String?) {
+        dataStore.edit {
+            if (uri.isNullOrBlank()) it.remove(PreferencesKeys.BUSINESS_LOGO)
+            else it[PreferencesKeys.BUSINESS_LOGO] = uri
+        }
+    }
+
+    override suspend fun setBusinessEmail(email: String) {
+        dataStore.edit { it[PreferencesKeys.BUSINESS_EMAIL] = email }
+    }
+
+    override suspend fun setBusinessPhone(phone: String) {
+        dataStore.edit { it[PreferencesKeys.BUSINESS_PHONE] = phone }
+    }
+
+    override suspend fun setBusinessType(type: String) {
+        dataStore.edit { it[PreferencesKeys.BUSINESS_TYPE] = type }
+    }
 }

@@ -23,6 +23,20 @@ class AppPreferencesRepository @Inject constructor(
     val pushNotificationsFlow: Flow<Boolean> = dataSource.pushNotificationsFlow
     val emailAlertsFlow: Flow<Boolean> = dataSource.emailAlertsFlow
 
+    val userNameFlow: Flow<String> = dataSource.userNameFlow
+    val userEmailFlow: Flow<String> = dataSource.userEmailFlow
+    val userPhoneFlow: Flow<String> = dataSource.userPhoneFlow
+    val userProfileImageFlow: Flow<String?> = dataSource.userProfileImageFlow
+    val userDobFlow: Flow<String> = dataSource.userDobFlow
+    val userGenderFlow: Flow<String> = dataSource.userGenderFlow
+
+    val businessNameFlow: Flow<String> = dataSource.businessNameFlow
+    val businessOwnerNameFlow: Flow<String> = dataSource.businessOwnerNameFlow
+    val businessLogoFlow: Flow<String?> = dataSource.businessLogoFlow
+    val businessEmailFlow: Flow<String> = dataSource.businessEmailFlow
+    val businessPhoneFlow: Flow<String> = dataSource.businessPhoneFlow
+    val businessTypeFlow: Flow<String> = dataSource.businessTypeFlow
+
 
     override suspend fun setThemeMode(mode: ThemeType) = dataSource.setThemeMode(mode)
     override suspend fun setBusinessMode(enabled: Boolean) = dataSource.setBusinessMode(enabled)
@@ -42,6 +56,18 @@ class AppPreferencesRepository @Inject constructor(
     override suspend fun setPushNotifications(enabled: Boolean) = dataSource.setPushNotifications(enabled)
     override suspend fun setEmailAlerts(enabled: Boolean) = dataSource.setEmailAlerts(enabled)
     override suspend fun setUserName(name: String) = dataSource.setUserName(name)
+    override suspend fun setUserEmail(email: String) = dataSource.setUserEmail(email)
+    override suspend fun setUserPhone(phone: String) = dataSource.setUserPhone(phone)
+    override suspend fun setUserProfileImage(uri: String?) = dataSource.setUserProfileImage(uri)
+    override suspend fun setUserDob(dob: String) = dataSource.setUserDob(dob)
+    override suspend fun setUserGender(gender: String) = dataSource.setUserGender(gender)
+
+    override suspend fun setBusinessName(name: String) = dataSource.setBusinessName(name)
+    override suspend fun setBusinessOwnerName(name: String) = dataSource.setBusinessOwnerName(name)
+    override suspend fun setBusinessLogo(uri: String?) = dataSource.setBusinessLogo(uri)
+    override suspend fun setBusinessEmail(email: String) = dataSource.setBusinessEmail(email)
+    override suspend fun setBusinessPhone(phone: String) = dataSource.setBusinessPhone(phone)
+    override suspend fun setBusinessType(type: String) = dataSource.setBusinessType(type)
 
     override suspend fun getLanguageOnce(): Language = dataSource.getLanguageOnce()
     override suspend fun getCurrencyOnce(): Currency = dataSource.getCurrencyOnce()

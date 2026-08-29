@@ -33,4 +33,17 @@ interface IPreferencesDataSource {
 
     suspend fun setUserName(name: String)
     suspend fun getUserNameOnce(): String
+
+    suspend fun setUserEmail(email: String)
+    suspend fun setUserPhone(phone: String)
+    suspend fun setUserProfileImage(uri: String?)
+    suspend fun setUserDob(dob: String)
+    suspend fun setUserGender(gender: String)
+
+    suspend fun setBusinessName(name: String)
+    suspend fun setBusinessOwnerName(name: String)
+    suspend fun setBusinessLogo(uri: String?)
+    suspend fun setBusinessEmail(email: String)
+    suspend fun setBusinessPhone(phone: String)
+    suspend fun setBusinessType(type: String)
 }

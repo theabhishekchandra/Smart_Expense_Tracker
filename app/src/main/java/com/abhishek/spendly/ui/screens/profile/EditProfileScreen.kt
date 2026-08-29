@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.abhishek.spendly.core.datastore.Currency
 import com.abhishek.spendly.core.navigation.NavManager
 import com.abhishek.spendly.ui.components.FinanceTopBar
 import com.abhishek.spendly.ui.components.LabeledTextField
@@ -32,22 +33,26 @@ fun EditProfileScreen(
     currentName: String,
     currentEmail: String,
     currentProfileImage: String?,
+    currentPhone: String = "",
+    currentDob: String = "",
+    currentGender: String = "Male",
+    currentCurrency: String = Currency.RUPEE.value,
     onSave: (String, String, String?, String, String, String, String) -> Unit,
     onCancel: () -> Unit
 ) {
     var name by remember { mutableStateOf(currentName) }
     var email by remember { mutableStateOf(currentEmail) }
     var profileUrl by remember { mutableStateOf(currentProfileImage ?: "") }
-    var phone by remember { mutableStateOf("") }
-    var dob by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf("Male") }
-    var currency by remember { mutableStateOf("USD") }
+    var phone by remember { mutableStateOf(currentPhone) }
+    var dob by remember { mutableStateOf(currentDob) }
+    var gender by remember { mutableStateOf(currentGender.ifBlank { "Male" }) }
+    var currency by remember { mutableStateOf(currentCurrency.ifBlank { Currency.RUPEE.value }) }
 
     var genderExpanded by remember { mutableStateOf(false) }
     var currencyExpanded by remember { mutableStateOf(false) }
 
     val genderOptions = listOf("Male", "Female", "Other")
-    val currencyOptions = listOf("USD", "INR", "EUR", "GBP")
+    val currencyOptions = Currency.entries.map { it.value }
 
     Scaffold(
         topBar = {

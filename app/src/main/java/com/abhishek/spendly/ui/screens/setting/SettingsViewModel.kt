@@ -21,6 +21,24 @@ data class UserPreferences(
     val emailAlerts: Boolean = true
 )
 
+data class ProfileInfo(
+    val name: String = "Guest User",
+    val email: String = "",
+    val phone: String = "",
+    val profileImage: String? = null,
+    val dob: String = "",
+    val gender: String = ""
+)
+
+data class BusinessInfo(
+    val businessName: String = "",
+    val ownerName: String = "",
+    val logoUrl: String? = null,
+    val email: String = "",
+    val phone: String = "",
+    val businessType: String = ""
+)
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val appPref: AppPreferencesRepository
@@ -80,6 +98,52 @@ class SettingsViewModel @Inject constructor(
             initialValue = UserPreferences()
         )
 
+    val profileInfo: StateFlow<ProfileInfo> =
+        combine(
+            appPref.userNameFlow,
+            appPref.userEmailFlow,
+            appPref.userPhoneFlow,
+            appPref.userProfileImageFlow,
+            appPref.userDobFlow,
+            appPref.userGenderFlow
+        ) { values ->
+            ProfileInfo(
+                name = values[0] as String,
+                email = values[1] as String,
+                phone = values[2] as String,
+                profileImage = values[3] as String?,
+                dob = values[4] as String,
+                gender = values[5] as String
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = ProfileInfo()
+        )
+
+    val businessInfo: StateFlow<BusinessInfo> =
+        combine(
+            appPref.businessNameFlow,
+            appPref.businessOwnerNameFlow,
+            appPref.businessLogoFlow,
+            appPref.businessEmailFlow,
+            appPref.businessPhoneFlow,
+            appPref.businessTypeFlow
+        ) { values ->
+            BusinessInfo(
+                businessName = values[0] as String,
+                ownerName = values[1] as String,
+                logoUrl = values[2] as String?,
+                email = values[3] as String,
+                phone = values[4] as String,
+                businessType = values[5] as String
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = BusinessInfo()
+        )
+
     // ---- Setters ----
     fun setTheme(mode: ThemeType) = updatePreference { appPref.setThemeMode(mode); "App theme changed to ${mode.value}." }
     fun setBusinessMode(enabled: Boolean) = updatePreference { appPref.setBusinessMode(enabled); "App mode changed to ${if (enabled) "Business" else "Personal"}" }
@@ -119,6 +183,42 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun saveProfile(
+        name: String,
+        email: String,
+        profileImage: String?,
+        phone: String,
+        dob: String,
+        gender: String,
+        currency: String
+    ) = updatePreference {
+        appPref.setUserName(name)
+        appPref.setUserEmail(email)
+        appPref.setUserPhone(phone)
+        appPref.setUserProfileImage(profileImage)
+        appPref.setUserDob(dob)
+        appPref.setUserGender(gender)
+        Currency.entries.find { it.value == currency }?.let { appPref.setCurrency(it) }
+        "Profile updated."
+    }
 
+    fun saveBusinessProfile(
+        businessName: String,
+        ownerName: String,
+        logoUrl: String?,
+        email: String,
+        phone: String,
+        businessType: String,
+        currency: String
+    ) = updatePreference {
+        appPref.setBusinessName(businessName)
+        appPref.setBusinessOwnerName(ownerName)
+        appPref.setBusinessLogo(logoUrl)
+        appPref.setBusinessEmail(email)
+        appPref.setBusinessPhone(phone)
+        appPref.setBusinessType(businessType)
+        Currency.entries.find { it.value == currency }?.let { appPref.setCurrency(it) }
+        "Business details updated."
+    }
 }
 
