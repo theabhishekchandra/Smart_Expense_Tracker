@@ -32,11 +32,6 @@ fun LabeledTextField(
     filterOnlyDigits: Boolean = false // Optional digit-only filter
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = AppSpacing.xs)
-        )
         OutlinedTextField(
             value = value,
             onValueChange = {
