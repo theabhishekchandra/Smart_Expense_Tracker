@@ -35,7 +35,17 @@ money lent to or borrowed from contacts.
 
 **Reports & subscription**
 - Spending trend charts, category breakdowns, and exportable reports
-- Personal/business tiers with basic, monthly, and yearly premium plans
+- Three tiers: Free, Premium Monthly (₹199/month), and Premium Yearly
+  (₹1,999/year, ~20% off the monthly rate) — premium adds AI-powered
+  insights, unlimited categories, multi-device sync, Excel/CSV/PDF export,
+  and staff/team expense tracking
+
+**Settings**
+- Language (English/Hindi) and currency selection, dark mode, and a
+  personal/business mode toggle
+- Configurable export format (PDF/CSV/Excel) and cloud sync target
+  (Google Drive/OneDrive/App Drive) with a sync frequency
+- Change password and biometric login
 
 ---
 
@@ -96,8 +106,21 @@ Structure > SDK Location`, or `.idea/gradle.xml`) points to it.
 
 ## Screenshots
 
-<img src="Screenshots/onboarding.png" width="260"/> <img src="Screenshots/login.png" width="260"/> <img src="Screenshots/home.png" width="260"/>
-<img src="Screenshots/reports.png" width="260"/> <img src="Screenshots/profile.png" width="260"/>
+**Onboarding & login**
+
+<img src="Screenshots/onboarding.png" width="230"/> <img src="Screenshots/login.png" width="230"/>
+
+**Home & expenses**
+
+<img src="Screenshots/home.png" width="230"/> <img src="Screenshots/add-expense.png" width="230"/> <img src="Screenshots/expense-list.png" width="230"/>
+
+**Reports, profile & settings**
+
+<img src="Screenshots/reports.png" width="230"/> <img src="Screenshots/profile.png" width="230"/> <img src="Screenshots/settings.png" width="230"/>
+
+**Subscription**
+
+<img src="Screenshots/subscription.png" width="230"/>
 
 ---
 
