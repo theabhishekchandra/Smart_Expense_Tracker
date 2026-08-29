@@ -12,7 +12,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
@@ -29,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.abhishek.smartexpensetracker.core.voice.VoiceManager
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 import kotlinx.coroutines.delay
 
 @Composable
@@ -91,7 +91,7 @@ fun VoiceOverlayHost() {
                 modifier = Modifier
 //                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .shadow(20.dp, RoundedCornerShape(24.dp))
+                    .shadow(20.dp, MaterialTheme.shapes.extraLarge)
                     .background(
                         brush = Brush.verticalGradient(
                             listOf(
@@ -99,9 +99,9 @@ fun VoiceOverlayHost() {
                                 MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
                             )
                         ),
-                        shape = RoundedCornerShape(24.dp)
+                        shape = MaterialTheme.shapes.extraLarge
                     )
-                    .padding(20.dp)
+                    .padding(AppSpacing.lg)
             ) {
                 // Title Row
                 Row(
@@ -111,16 +111,16 @@ fun VoiceOverlayHost() {
                 ) {
                     AnimatedTextStatus(status)
                     TextButton(onClick = { VoiceManager.stopListening() }) {
-                        Text("Close")
+                        Text("Close", style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(AppSpacing.md))
 
                 // Mic Animation
                 if (status == VoiceManager.Status.Listening) {
                     PulsingMic()
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(AppSpacing.md))
                 }
 
                 // Transcript
@@ -188,7 +188,7 @@ fun PulsingMic() {
         modifier = Modifier
             .size(60.dp)
             .clip(CircleShape)
-            .background(Color.Red.copy(alpha = 0.7f))
+            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.85f))
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
@@ -197,8 +197,8 @@ fun PulsingMic() {
     ) {
         Icon(
             imageVector = Icons.Default.Mic,
-            contentDescription = "Mic",
-            tint = Color.White
+            contentDescription = "Listening, tap Close to stop",
+            tint = MaterialTheme.colorScheme.onError
         )
     }
 }

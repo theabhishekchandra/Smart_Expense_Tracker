@@ -2,23 +2,31 @@
 
 package com.abhishek.smartexpensetracker.ui.screens.expense
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.abhishek.smartexpensetracker.core.navigation.NavManager
+import com.abhishek.smartexpensetracker.ui.components.AnimatedAmountText
 import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
+import com.abhishek.smartexpensetracker.ui.components.GradientCard
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
+import com.abhishek.smartexpensetracker.ui.theme.DangerColor
+import com.abhishek.smartexpensetracker.ui.theme.DangerColorDark
+import com.abhishek.smartexpensetracker.ui.theme.SuccessColor
+import com.abhishek.smartexpensetracker.ui.theme.SuccessColorDark
+import com.abhishek.smartexpensetracker.ui.theme.WarningColor
+import com.abhishek.smartexpensetracker.ui.theme.WarningColorDark
 
 @Composable
-fun BudgetScreen() {
+fun BudgetScreen(navManager: NavManager? = null) {
     var budgetType by remember { mutableStateOf("Monthly") } // Monthly / Weekly
     var budgetAmount by remember { mutableIntStateOf(20000) }   // Budget set
     var spentAmount by remember { mutableIntStateOf(15999) }    // Spent amount
@@ -31,10 +39,11 @@ fun BudgetScreen() {
         else -> "Safe"
     }
 
+    val isDark = isSystemInDarkTheme()
     val statusColor = when (budgetStatus) {
-        "Exceeded" -> Color.Red
-        "Nearing Limit" -> Color(0xFFFFA726) // Orange
-        else -> Color(0xFF66BB6A) // Green
+        "Exceeded" -> if (isDark) DangerColorDark else DangerColor
+        "Nearing Limit" -> if (isDark) WarningColorDark else WarningColor
+        else -> if (isDark) SuccessColorDark else SuccessColor
     }
 
     Scaffold(
@@ -46,7 +55,7 @@ fun BudgetScreen() {
                 showFilter = false,
                 showNotifications = false,
                 showMenu = false,
-                onBackClick = {/*TODO: Implement Back Button.*/}
+                onBackClick = { navManager?.navigateBack() }
             )
         }
     ) { padding ->
@@ -54,8 +63,8 @@ fun BudgetScreen() {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+                .padding(AppSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Budget Type Toggle
@@ -66,72 +75,88 @@ fun BudgetScreen() {
                 FilterChip(
                     selected = budgetType == "Monthly",
                     onClick = { budgetType = "Monthly" },
-                    label = { Text("Monthly") },
+                    label = { Text("Monthly", style = MaterialTheme.typography.labelLarge) },
                     shape = CircleShape
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppSpacing.sm))
                 FilterChip(
                     selected = budgetType == "Weekly",
                     onClick = { budgetType = "Weekly" },
-                    label = { Text("Weekly") },
+                    label = { Text("Weekly", style = MaterialTheme.typography.labelLarge) },
                     shape = CircleShape
                 )
             }
 
-            // Budget Info Card
-            Card(
-                shape = RoundedCornerShape(16.dp),
+            // Budget Info Card - the hero moment on this screen
+            GradientCard(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                contentPadding = PaddingValues(AppSpacing.lg)
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.sm),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Your $budgetType Budget", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                    Text("₹$budgetAmount", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Your $budgetType Budget",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White.copy(alpha = 0.85f)
+                    )
+                    AnimatedAmountText(
+                        amount = budgetAmount.toDouble(),
+                        style = MaterialTheme.typography.displaySmall,
+                        color = Color.White,
+                        decimals = 0
+                    )
 
                     LinearProgressIndicator(
                         progress = { progress },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(12.dp)
-                            .clip(RoundedCornerShape(50)),
-                        color = statusColor
+                            .clip(MaterialTheme.shapes.extraLarge),
+                        color = Color.White,
+                        trackColor = Color.White.copy(alpha = 0.25f)
                     )
 
-                    Text(
-                        "Spent: ₹$spentAmount / ₹$budgetAmount",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AnimatedAmountText(
+                            amount = spentAmount.toDouble(),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White,
+                            prefix = "Spent: ₹",
+                            decimals = 0
+                        )
+                        Text(
+                            " / ₹$budgetAmount",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White.copy(alpha = 0.85f)
+                        )
+                    }
                 }
             }
 
             // Budget Status Alert
             Card(
-                shape = RoundedCornerShape(16.dp),
+                shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(containerColor = statusColor.copy(alpha = 0.15f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(AppSpacing.md),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "Status: $budgetStatus",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
                         color = statusColor
                     )
-                    if (budgetStatus == "Exceeded") {
-                        Text("You have overspent! Consider adjusting expenses.", color = Color.Red)
-                    } else if (budgetStatus == "Nearing Limit") {
-                        Text("You’re nearing your limit, track expenses carefully.", color = Color(0xFFFFA726))
-                    } else {
-                        Text("You are within your budget, keep going strong!", color = Color(0xFF388E3C))
+                    val message = when (budgetStatus) {
+                        "Exceeded" -> "You have overspent! Consider adjusting expenses."
+                        "Nearing Limit" -> "You’re nearing your limit, track expenses carefully."
+                        else -> "You are within your budget, keep going strong!"
                     }
+                    Text(message, style = MaterialTheme.typography.bodyMedium, color = statusColor)
                 }
             }
 
@@ -140,11 +165,17 @@ fun BudgetScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(onClick = { budgetAmount += 1000 }) {
-                    Text("Increase Budget")
+                Button(
+                    onClick = { budgetAmount += 1000 },
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text("Increase Budget", style = MaterialTheme.typography.labelLarge)
                 }
-                Button(onClick = { spentAmount += 500 }) {
-                    Text("Add Expense")
+                Button(
+                    onClick = { spentAmount += 500 },
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text("Add Expense", style = MaterialTheme.typography.labelLarge)
                 }
             }
         }

@@ -3,8 +3,9 @@ package com.abhishek.smartexpensetracker.data.repository.local
 import com.abhishek.smartexpensetracker.data.local.room.dao.IncomeDao
 import com.abhishek.smartexpensetracker.data.local.room.entity.IncomeEntity
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class IncomeRepository(
+class IncomeRepository @Inject constructor(
     private val incomeDao: IncomeDao
 ) : IIncomeRepository{
     override suspend fun add(income: IncomeEntity) = incomeDao.insert(income)

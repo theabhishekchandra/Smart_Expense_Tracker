@@ -4,22 +4,23 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.FractionalThreshold
@@ -40,8 +41,16 @@ import com.abhishek.smartexpensetracker.data.model.ExpenseDM
 import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
 import com.abhishek.smartexpensetracker.data.model.GroupMode
 import com.abhishek.smartexpensetracker.data.model.UserRole
+import com.abhishek.smartexpensetracker.ui.components.AnimatedAmountText
 import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
 import com.abhishek.smartexpensetracker.ui.screens.login.viewmodel.ExpenseViewModel
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
+import com.abhishek.smartexpensetracker.ui.theme.DangerColor
+import com.abhishek.smartexpensetracker.ui.theme.DangerColorDark
+import com.abhishek.smartexpensetracker.ui.theme.SuccessColor
+import com.abhishek.smartexpensetracker.ui.theme.SuccessColorDark
+import com.abhishek.smartexpensetracker.ui.theme.WarningColor
+import com.abhishek.smartexpensetracker.ui.theme.WarningColorDark
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -93,10 +102,20 @@ fun ExpenseListScreen(
     BaseScaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Expenses (${filteredExpenses.size}) • ₹${"%.2f".format(total)}") },
+                title = {
+                    Column {
+                        Text("Expenses (${filteredExpenses.size})", style = MaterialTheme.typography.titleLarge)
+                        AnimatedAmountText(
+                            amount = total,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            prefix = "Total: ₹"
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = { showFilterDialog = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Filters")
+                        Icon(Icons.Default.FilterList, contentDescription = "Filter and sort expenses")
                     }
                 }
             )
@@ -109,7 +128,11 @@ fun ExpenseListScreen(
                     modifier = Modifier.fillMaxSize().padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No expenses found", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "No expenses found",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             } else {
                 LazyColumn(contentPadding = padding, modifier = Modifier.fillMaxSize()) {
@@ -119,7 +142,8 @@ fun ExpenseListScreen(
                                 Text(
                                     text = "$category (${expenses.size})",
                                     style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding(8.dp)
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm)
                                 )
                             }
                         }
@@ -128,7 +152,8 @@ fun ExpenseListScreen(
                                 expense = expense,
                                 userRole = userRole,
                                 onDelete = { if (userRole == UserRole.PERSONAL || userRole == UserRole.ADMIN) viewModel.deleteExpense(it) },
-                                onEdit = { if (userRole != UserRole.VIEWER && userRole != UserRole.APPROVER) viewModel.editExpense(it) }
+                                onEdit = { if (userRole != UserRole.VIEWER && userRole != UserRole.APPROVER) viewModel.editExpense(it) },
+                                onClick = { navManager?.navigate(ScreenRoutes.ExpenseDetail.passExpenseId(it.id.toString())) }
                             )
                         }
                     }
@@ -146,21 +171,21 @@ fun ExpenseListScreen(
                     Text("Apply")
                 }
             },
-            title = { Text("Filter & Sort") },
+            title = { Text("Filter & Sort", style = MaterialTheme.typography.titleLarge) },
             text = {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = groupByCategory, onCheckedChange = { groupByCategory = it })
-                        Text("Group by Category")
+                        Text("Group by Category", style = MaterialTheme.typography.bodyMedium)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = sortByAmount, onCheckedChange = { sortByAmount = it })
-                        Text("Sort by Amount (High → Low)")
+                        Text("Sort by Amount (High → Low)", style = MaterialTheme.typography.bodyMedium)
                     }
 
                     // Show status filter ONLY for business roles
                     if (userRole != UserRole.PERSONAL) {
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(AppSpacing.sm))
                         Text("Filter by Status:", style = MaterialTheme.typography.titleSmall)
                         @OptIn(ExperimentalLayoutApi::class)
                         FlowRow(
@@ -169,13 +194,15 @@ fun ExpenseListScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             ExpenseStatus.entries.forEach { status ->
+                                val selected = filterStatus == status
                                 AssistChip(
                                     onClick = { filterStatus = if (filterStatus == status) null else status },
-                                    label = { Text(status.name) },
+                                    label = { Text(status.name, style = MaterialTheme.typography.labelLarge) },
                                     colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = if (filterStatus == status) Color(0xFF4CAF50) else Color.LightGray
+                                        containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                        labelColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                     ),
-                                    modifier = Modifier.padding(4.dp)
+                                    modifier = Modifier.padding(AppSpacing.xs)
                                 )
                             }
                         }
@@ -193,9 +220,17 @@ fun SwipeableExpenseItem(
     expense: ExpenseDM,
     userRole: UserRole,
     onDelete: (ExpenseDM) -> Unit,
-    onEdit: (ExpenseDM) -> Unit
+    onEdit: (ExpenseDM) -> Unit,
+    onClick: (ExpenseDM) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val isDark = isSystemInDarkTheme()
+    val successColor = if (isDark) SuccessColorDark else SuccessColor
+    val dangerColor = if (isDark) DangerColorDark else DangerColor
+    val warningColor = if (isDark) WarningColorDark else WarningColor
+
+    // NOTE: swipe mechanics intentionally left untouched (old material.swipeable API) -
+    // only the visuals below have been modernized.
     val swipeableState = rememberSwipeableState(0)
     val sizePx = 150f
     val anchors = mapOf(0f to 0, -sizePx to 1, sizePx to 2)
@@ -214,29 +249,37 @@ fun SwipeableExpenseItem(
         // Action buttons for delete/edit
         if (userRole == UserRole.PERSONAL || userRole == UserRole.ADMIN) {
             Row(
-                modifier = Modifier.matchParentSize().padding(horizontal = 12.dp),
+                modifier = Modifier.matchParentSize().padding(horizontal = AppSpacing.md),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = Color.Red,
-                    modifier = Modifier.size(32.dp).clickable {
+                IconButton(
+                    onClick = {
                         onDelete(expense)
                         Toast.makeText(context, "Deleted ${expense.title}", Toast.LENGTH_SHORT).show()
-                    }
-                )
-                if (userRole != UserRole.VIEWER && userRole != UserRole.APPROVER) {
+                    },
+                    modifier = Modifier.size(48.dp)
+                ) {
                     Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = Color.Blue,
-                        modifier = Modifier.size(32.dp).clickable {
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete ${expense.title}",
+                        tint = dangerColor
+                    )
+                }
+                if (userRole != UserRole.VIEWER && userRole != UserRole.APPROVER) {
+                    IconButton(
+                        onClick = {
                             onEdit(expense)
                             Toast.makeText(context, "Edit ${expense.title}", Toast.LENGTH_SHORT).show()
-                        }
-                    )
+                        },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit ${expense.title}",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
@@ -246,42 +289,65 @@ fun SwipeableExpenseItem(
             modifier = Modifier
                 .offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }
                 .fillMaxWidth()
-                .padding(6.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = RoundedCornerShape(12.dp)
+                .padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs)
+                .clickable { onClick(expense) },
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+            shape = MaterialTheme.shapes.medium
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AppSpacing.md),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(expense.title, style = MaterialTheme.typography.titleSmall)
+                    Spacer(Modifier.height(AppSpacing.xs))
                     Text(
                         "${expense.category} • ${SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date(expense.timestamp))}",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     expense.notes?.takeIf { it.isNotEmpty() }?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray))
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     if (expense.receiptUri != null) {
-                        Text("📎 Receipt attached", style = MaterialTheme.typography.bodySmall.copy(color = Color.Blue))
+                        Text(
+                            "📎 Receipt attached",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                     // Show extra info only in Business Mode
                     if (userRole != UserRole.PERSONAL) {
                         if (userRole == UserRole.ADMIN && expense.userName != null) {
-                            Text("👤 Added by: ${expense.userName}", style = MaterialTheme.typography.bodySmall.copy(color = Color.DarkGray))
-                        }
-                        if (expense.status != null) {
                             Text(
-                                "Status: ${expense.status.name}",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = when (expense.status) {
-                                        ExpenseStatus.APPROVED -> Color.Green
-                                        ExpenseStatus.REJECTED -> Color.Red
-                                        ExpenseStatus.PENDING -> Color(0xFFFF9800)
-                                        else -> Color.Gray
-                                    }
-                                )
+                                "👤 Added by: ${expense.userName}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(Modifier.height(AppSpacing.xs))
+                        val statusColor = when (expense.status) {
+                            ExpenseStatus.APPROVED -> successColor
+                            ExpenseStatus.REJECTED -> dangerColor
+                            ExpenseStatus.PENDING -> warningColor
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(MaterialTheme.shapes.extraSmall)
+                                .background(statusColor.copy(alpha = 0.15f))
+                                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
+                        ) {
+                            Text(
+                                expense.status.name,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = statusColor
                             )
                         }
                     }
@@ -289,133 +355,13 @@ fun SwipeableExpenseItem(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         "₹${"%.2f".format(expense.amount)}",
-                        style = MaterialTheme.typography.titleSmall.copy(fontSize = 16.sp)
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
             }
         }
     }
 }
-
-
-@Composable
-fun ExpenseList(
-    expenses: List<ExpenseDM>,
-    groupMode: GroupMode,
-    userRole: UserRole,
-    onDeleteExpense: (ExpenseDM) -> Unit,
-    onEditExpense: (ExpenseDM) -> Unit,
-    padding: PaddingValues,
-    isLoading: Boolean
-) {
-    if (expenses.isEmpty() && !isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentAlignment = Alignment.Center
-        ) { Text("No expenses for selected filter.", style = MaterialTheme.typography.bodyMedium) }
-    } else if (expenses.isEmpty() || isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-    } else {
-        LazyColumn(contentPadding = padding, modifier = Modifier.fillMaxSize()) {
-            items(expenses) { expense ->
-                SwipeableExpenseItem(
-                    expense = expense,
-                    userRole = userRole,
-                    onDelete = onDeleteExpense,
-                    onEdit = onEditExpense
-                )
-            }
-        }
-    }
-}
-
-/*@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun SwipeableExpenseItem(
-    expense: ExpenseDM,
-    userRole: UserRole,
-    onDelete: (ExpenseDM) -> Unit,
-    onEdit: (ExpenseDM) -> Unit
-) {
-    val context = LocalContext.current
-    val swipeableState = rememberSwipeableState(0)
-    val sizePx = 150f
-    val anchors = mapOf(0f to 0, -sizePx to 1, sizePx to 2)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                orientation = Orientation.Horizontal
-            )
-            .background(Color.Transparent)
-    ) {
-        // Show delete/edit only if role permits
-        if (userRole == UserRole.PERSONAL || userRole == UserRole.ADMIN) {
-            Row(
-                modifier = Modifier.matchParentSize().padding(horizontal = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = Color.Red,
-                    modifier = Modifier.size(32.dp).clickable {
-                        onDelete(expense)
-                        Toast.makeText(context, "Deleted ${expense.title}", Toast.LENGTH_SHORT).show()
-                    }
-                )
-                if (userRole != UserRole.VIEWER && userRole != UserRole.APPROVER) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = Color.Blue,
-                        modifier = Modifier.size(32.dp).clickable {
-                            onEdit(expense)
-                            Toast.makeText(context, "Edit ${expense.title}", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                }
-            }
-        }
-
-        // Foreground Card
-        Card(
-            modifier = Modifier.offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }.fillMaxWidth().padding(6.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Row(modifier = Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text(expense.title, style = MaterialTheme.typography.titleSmall)
-                    Text(
-                        "${expense.category} • ${
-                            SimpleDateFormat("dd:MM:yyyy : hh:mm a", Locale.getDefault())
-                                .format(Date(expense.timestamp))
-                        }",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    expense.notes?.takeIf { it.isNotEmpty() }?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall)
-                    }
-                    if (userRole == UserRole.ADMIN && expense.userName != null) {
-                        Text("Added by: ${expense.userName}", style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray))
-                    }
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("₹${"%.2f".format(expense.amount)}", style = MaterialTheme.typography.titleSmall.copy(fontSize = 16.sp))
-                }
-            }
-        }
-    }
-}*/
-
 
 
 @Preview(showBackground = true)

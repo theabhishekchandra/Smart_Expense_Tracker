@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -50,8 +51,11 @@ fun AppSearchBar(
             active = active,
             placeholder = { Text(text = placeHolder) },
             onActiveChange = onActiveChange,
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
             shape = SearchBarDefaults.inputFieldShape,
+            colors = SearchBarDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
             trailingIcon = {
                 if (query.isNotEmpty()) {
                     IconButton(onClick = {

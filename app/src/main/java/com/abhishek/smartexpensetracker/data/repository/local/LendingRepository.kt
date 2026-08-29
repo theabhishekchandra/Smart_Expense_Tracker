@@ -7,8 +7,9 @@ import com.abhishek.smartexpensetracker.data.local.room.dao.RepaymentDao
 import com.abhishek.smartexpensetracker.data.local.room.entity.LendingTransactionEntity
 import com.abhishek.smartexpensetracker.data.local.room.entity.RepaymentEntity
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class LendingRepository(
+class LendingRepository @Inject constructor(
     private val db: AppDatabase,
     private val lendingDao: LendingDao,
     private val repaymentDao: RepaymentDao,

@@ -1,63 +1,62 @@
 package com.abhishek.smartexpensetracker.ui.screens.login.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.abhishek.smartexpensetracker.core.datastore.ThemeType
 import com.abhishek.smartexpensetracker.core.datastore.AppPreferencesRepository
-import com.abhishek.smartexpensetracker.data.local.room.entity.ExpenseEntity
 import com.abhishek.smartexpensetracker.data.model.DateFilter
-import com.abhishek.smartexpensetracker.data.model.Expense
 import com.abhishek.smartexpensetracker.data.model.ExpenseDM
 import com.abhishek.smartexpensetracker.data.model.ExpenseUiState
 import com.abhishek.smartexpensetracker.data.model.GroupMode
+import com.abhishek.smartexpensetracker.data.local.room.entity.LendingTransactionEntity
+import com.abhishek.smartexpensetracker.data.model.DEFAULT_LOCAL_USER_ID
+import com.abhishek.smartexpensetracker.data.model.toDomain
+import com.abhishek.smartexpensetracker.data.model.toEntity
 import com.abhishek.smartexpensetracker.data.repository.IExpenseRepository
+import com.abhishek.smartexpensetracker.data.repository.local.ICategoryRepository
+import com.abhishek.smartexpensetracker.data.repository.local.IContactRepository
+import com.abhishek.smartexpensetracker.data.repository.local.ILendingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ExpenseViewModel @Inject constructor(
     private val repo: IExpenseRepository,
-    private val repository: AppPreferencesRepository
+    private val categoryRepo: ICategoryRepository,
+    private val contactRepo: IContactRepository,
+    private val lendingRepo: ILendingRepository,
+    preferencesRepository: AppPreferencesRepository
 ) : ViewModel() {
 
-    val isDark = repository.themeMode
-    init {
-        val themeMode = repository.themeMode
-            .stateIn(viewModelScope, SharingStarted.Lazily, ThemeType.LIGHT)
-
-        val businessMode = repository.businessMode
-            .stateIn(viewModelScope, SharingStarted.Lazily, false)
-        Log.d("ExpenseViewModel", "themeMode: ${themeMode.value}")
-        Log.d("ExpenseViewModel", "businessMode: ${businessMode.value}")
-    }
+    val isDark = preferencesRepository.themeMode
 
     private val _uiState = MutableStateFlow(ExpenseUiState())
     val uiState: StateFlow<ExpenseUiState> = _uiState.asStateFlow()
 
-    private val _expenses = MutableStateFlow<List<Expense>>(emptyList())
-    val expenses: StateFlow<List<Expense>> = _expenses.asStateFlow()
-
-    private var currentFilter: DateFilter = DateFilter.TODAY
-
-    val demoExpenses = listOf(
-        ExpenseDM(title = "Tea", amount = 10.0, category = "Food", notes = "Morning tea", receiptUri = null),
-        ExpenseDM(title = "Bus", amount = 20.0, category = "Transport", notes = "Office travel", receiptUri = null),
-        ExpenseDM(title = "Car", amount = 20.0, category = "Transport", notes = "Office travel", receiptUri = null),
-        ExpenseDM(title = "Breakfast", amount = 20.0, category = "Food", notes = "Office travel", receiptUri = null),
-        ExpenseDM(title = "Salary", amount = 20.0, category = "Staff", notes = "Office travel", receiptUri = null)
-    )
+    private var currentFilter: DateFilter = DateFilter.ALL
+    private var categoryNameById: Map<Long, String> = emptyMap()
+    private var categoryIdByName: Map<String, Long> = emptyMap()
 
     init {
-        demoExpenses.forEach {
-            addExpense(it)
+        viewModelScope.launch {
+            refreshCategoryCache()
+            loadExpenses(currentFilter)
         }
-        loadExpenses(currentFilter)
     }
 
-    /** 🔹 Load expenses by filter */
+    private suspend fun refreshCategoryCache() {
+        val categories = categoryRepo.getAllCategories()
+        categoryNameById = categories.associate { it.categoryId to it.name }
+        categoryIdByName = categories.associate { it.name.lowercase() to it.categoryId }
+    }
+
+    /** Load expenses by filter */
     fun loadExpenses(filter: DateFilter) {
         currentFilter = filter
         viewModelScope.launch {
@@ -66,114 +65,128 @@ class ExpenseViewModel @Inject constructor(
                 .catch { e ->
                     _uiState.update { it.copy(loading = false, error = e.message) }
                 }
-                .collect { list ->
-//                    val searched = applySearch(list, _uiState.value.searchQuery)
-//                    _uiState.update { it.copy(expenses = searched, loading = false) }
+                .collect { entities ->
+                    val domain = entities.map { it.toDomain(categoryNameById) }
+                    _uiState.update {
+                        it.copy(expenses = applySearch(domain, it.searchQuery), loading = false)
+                    }
                 }
         }
     }
 
-    /** 🔹 Apply search filter */
+    /** Apply search filter */
     fun updateSearch(query: String) {
         _uiState.update { it.copy(searchQuery = query) }
         viewModelScope.launch {
             repo.getExpensesByFilter(currentFilter).firstOrNull()?.let { list ->
-//                val searched = applySearch(list, query)
-//                _uiState.update { it.copy(expenses = searched) }
+                val domain = list.map { it.toDomain(categoryNameById) }
+                _uiState.update { it.copy(expenses = applySearch(domain, query)) }
             }
         }
     }
 
+    private fun applySearch(list: List<ExpenseDM>, query: String): List<ExpenseDM> {
+        if (query.isBlank()) return list
+        return list.filter { it.title.contains(query, ignoreCase = true) }
+    }
 
-//    private fun applySearch(list: List<Expense>, query: String): List<Expense> {
-//        if (query.isBlank()) return list
-//        return list.filter { it.title.contains(query, ignoreCase = true) }
-//    }
-
-    /** 🔹 Toggle grouping mode */
+    /** Toggle grouping mode */
     fun toggleGroupMode() {
         val newMode =
             if (_uiState.value.groupMode == GroupMode.TIME) GroupMode.CATEGORY else GroupMode.TIME
         _uiState.update { it.copy(groupMode = newMode) }
     }
 
-    /** 🔹 CRUD */
-    /** 🔹 Add new expense */
-    fun addExpense(expense: ExpenseDM) = viewModelScope.launch {
+    /** Resolve (or create) the category row backing a free-text category name */
+    private suspend fun resolveCategoryId(name: String): Long? {
+        if (name.isBlank()) return null
+        categoryIdByName[name.lowercase()]?.let { return it }
+        val id = categoryRepo.getOrCreateCategoryId(name)
+        refreshCategoryCache()
+        return id
+    }
+
+    /** Add new expense */
+    fun addExpense(expense: ExpenseDM, onSaved: () -> Unit = {}) = viewModelScope.launch {
         try {
-//            repo.insert(expense)
-            _uiState.update { state ->
-                state.copy(
-                    expenses = (state.expenses + expense)
-                )
-            }
+            val categoryId = resolveCategoryId(expense.category)
+            repo.insert(expense.toEntity(categoryId))
+            loadExpenses(currentFilter)
+            onSaved()
         } catch (e: Exception) {
             _uiState.update { it.copy(error = e.message) }
         }
     }
 
-    /** 🔹 Edit expense */
+    /** Edit expense */
     fun editExpense(expense: ExpenseDM) = viewModelScope.launch {
         try {
-//            repo.update(expense)
-            // Reuse updateList logic
-            updateList(
-                ExpenseDM(
-                    title = expense.title,
-                    amount = expense.amount,
-                    category = expense.category,
-                    notes = expense.notes,
-                    receiptUri = expense.receiptUri,
-                    timestamp = expense.timestamp,
-                    id = expense.id.toString(),
-                )
-            )
+            val categoryId = resolveCategoryId(expense.category)
+            repo.update(expense.toEntity(categoryId))
+            loadExpenses(currentFilter)
         } catch (e: Exception) {
             _uiState.update { it.copy(error = e.message) }
         }
     }
 
-    /** 🔹 Delete expense */
+    /** Delete expense */
     fun deleteExpense(expense: ExpenseDM) = viewModelScope.launch {
         try {
-            repo.delete(
-                ExpenseEntity(
-                    expenseId = expense.id.toString().toLong(),
-                    title = expense.title,
-                    amount = expense.amount,
-//                category = expense.category,
-                    notes = expense.notes,
-                    receiptUri = expense.receiptUri.toString(),
-                    timestamp = expense.timestamp
-                )
-            )
-            _uiState.update { state ->
-                state.copy(
-                    expenses = state.expenses.filter { it.id != expense.id }
-                )
-            }
+            val categoryId = resolveCategoryId(expense.category)
+            repo.delete(expense.toEntity(categoryId))
+            loadExpenses(currentFilter)
         } catch (e: Exception) {
             _uiState.update { it.copy(error = e.message) }
         }
     }
 
-    /** 🔹 Update list item immutably */
-    fun updateList(expenseDM: ExpenseDM) {
-        _uiState.update { state ->
-            state.copy(
-                expenses = state.expenses.map { expense ->
-                    if (expense.id == expenseDM.id) {
-                        expense.copy(
-                            title = expenseDM.title ?: expense.title,
-                            amount = expenseDM.amount ?: expense.amount,
-                            category = expenseDM.category ?: expense.category,
-                            notes = expenseDM.notes ?: expense.notes,
-                            receiptUri = expenseDM.receiptUri ?: expense.receiptUri,
-                            timestamp = expenseDM.timestamp ?: expense.timestamp
-                        )
-                    } else expense
-                }
+    /** Approve a pending expense */
+    fun approveExpense(expense: ExpenseDM) = viewModelScope.launch {
+        try {
+            repo.updateApprovalStatus(expense.id, "Approved", null)
+            loadExpenses(currentFilter)
+        } catch (e: Exception) {
+            _uiState.update { it.copy(error = e.message) }
+        }
+    }
+
+    /** Reject a pending expense */
+    fun rejectExpense(expense: ExpenseDM) = viewModelScope.launch {
+        try {
+            repo.updateApprovalStatus(expense.id, "Rejected", null)
+            loadExpenses(currentFilter)
+        } catch (e: Exception) {
+            _uiState.update { it.copy(error = e.message) }
+        }
+    }
+
+    fun findExpenseById(id: Long): ExpenseDM? = _uiState.value.expenses.find { it.id == id }
+
+    /** Records a lender/borrower transaction from the Add Expense screen's toggled flow */
+    fun addLendingRecord(
+        personName: String,
+        phone: String,
+        amount: Double,
+        purpose: String,
+        isGiven: Boolean,
+        dueDateMillis: Long?,
+        onSaved: () -> Unit = {}
+    ) = viewModelScope.launch {
+        try {
+            val contactId = contactRepo.getOrCreateContactId(personName, phone)
+            lendingRepo.addLending(
+                LendingTransactionEntity(
+                    userId = DEFAULT_LOCAL_USER_ID,
+                    contactId = contactId,
+                    amount = amount,
+                    transactionType = if (isGiven) "lent" else "borrowed",
+                    dueDate = dueDateMillis,
+                    notes = purpose.ifBlank { null }
+                )
             )
+            onSaved()
+        } catch (e: Exception) {
+            _uiState.update { it.copy(error = e.message) }
         }
     }
 }

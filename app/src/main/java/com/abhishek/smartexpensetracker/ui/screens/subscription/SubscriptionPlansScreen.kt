@@ -18,15 +18,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.abhishek.smartexpensetracker.core.datastore.AppPreferencesRepository
 import com.abhishek.smartexpensetracker.core.datastore.PremiumType
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
+import com.abhishek.smartexpensetracker.ui.components.GradientCard
 import com.abhishek.smartexpensetracker.ui.screens.setting.SettingsViewModel
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
-import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +38,7 @@ fun SubscriptionPlansScreen(
     // Collect state flows
     val loader by settingsViewModel.loader.collectAsState()
     val toastMessage = settingsViewModel.toastMessage
+    val premiumType by settingsViewModel.premiumType.collectAsState(initial = PremiumType.BASIC)
 
     // One-time toast effect
     LaunchedEffect(toastMessage) {
@@ -66,22 +66,23 @@ fun SubscriptionPlansScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
+                .padding(AppSpacing.md)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Top,
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-//            Text(
-//                text = "Choose the right plan for you",
-//                style = MaterialTheme.typography.headlineSmall,
-//                modifier = Modifier.padding(bottom = 16.dp)
-//            )
+            Text(
+                text = "Choose the right plan for you",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = AppSpacing.xs)
+            )
 
             // Free Plan
             PlanCard(
                 title = "Free Plan",
-                price = "₹0 / month",
+                price = "₹0",
+                pricePeriod = "/ month",
                 features = listOf(
                     "✔ Track expenses manually",
                     "✔ Basic categories",
@@ -91,15 +92,15 @@ fun SubscriptionPlansScreen(
                     "✖ Export to Excel/CSV"
                 ),
                 isPremium = false,
+                isCurrentPlan = premiumType == PremiumType.BASIC,
                 onClick = { settingsViewModel.setPremium(PremiumType.BASIC,false) }
             )
-
-            Spacer(modifier = Modifier.height(20.dp))
 
             // Premium Monthly Plan
             PlanCard(
                 title = "Premium Monthly",
-                price = "₹199 / month",
+                price = "₹199",
+                pricePeriod = "/ month",
                 features = listOf(
                     "✔ Everything in Free",
                     "✔ AI-powered expense insights",
@@ -109,15 +110,16 @@ fun SubscriptionPlansScreen(
                     "✔ Staff/Team expense tracking"
                 ),
                 isPremium = true,
+                isCurrentPlan = premiumType == PremiumType.MONTHLY,
                 onClick = { settingsViewModel.setPremium(PremiumType.MONTHLY,true)}
             )
-
-            Spacer(modifier = Modifier.height(20.dp))
 
             // Premium Yearly Plan
             PlanCard(
                 title = "Premium Yearly",
-                price = "₹1999 / year (Save 20%)",
+                price = "₹1999",
+                pricePeriod = "/ year",
+                badge = "Save 20%",
                 features = listOf(
                     "✔ Everything in Monthly Plan",
                     "✔ Priority customer support",
@@ -125,6 +127,7 @@ fun SubscriptionPlansScreen(
                 ),
                 isPremium = true,
                 highlight = true,
+                isCurrentPlan = premiumType == PremiumType.YEARLY,
                 onClick = { settingsViewModel.setPremium(PremiumType.YEARLY,true) }
             )
         }
@@ -133,7 +136,7 @@ fun SubscriptionPlansScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f)),
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -146,63 +149,166 @@ fun SubscriptionPlansScreen(
 fun PlanCard(
     title: String,
     price: String,
+    pricePeriod: String,
     features: List<String>,
     isPremium: Boolean,
     highlight: Boolean = false,
+    isCurrentPlan: Boolean = false,
+    badge: String? = null,
     onClick: () -> Unit
 ) {
-    val cardColor = if (highlight) Color(0xFFffe082) else MaterialTheme.colorScheme.surface
-    val featureTextColor = if (highlight) Color.Black else MaterialTheme.colorScheme.onSurface
-    val priceColor = if (isPremium) MaterialTheme.colorScheme.primary else Color.Gray
+    val buttonLabel = if (isCurrentPlan) "Current Plan" else if (isPremium) "Subscribe Now" else "Continue Free"
 
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(6.dp)
+    if (highlight) {
+        // The recommended/featured plan gets the brand hero gradient + white text instead
+        // of a flat tinted container, so it reads as the visually "premium" choice.
+        GradientCard(modifier = Modifier.fillMaxWidth()) {
+            PlanCardBody(
+                title = title,
+                price = price,
+                pricePeriod = pricePeriod,
+                features = features,
+                isCurrentPlan = isCurrentPlan,
+                badgeText = badge ?: "Recommended",
+                titleColor = Color.White,
+                priceColor = Color.White,
+                featureColor = Color.White.copy(alpha = 0.92f),
+                dividerColor = Color.White.copy(alpha = 0.3f),
+                tagContainerColor = Color.White.copy(alpha = 0.22f),
+                tagContentColor = Color.White,
+                buttonColors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                buttonLabel = buttonLabel,
+                onClick = onClick
+            )
+        }
+    } else {
+        val titleColor = MaterialTheme.colorScheme.onSurface
+        val priceColor = if (isPremium) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        Card(
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        ) {
+            PlanCardBody(
+                title = title,
+                price = price,
+                pricePeriod = pricePeriod,
+                features = features,
+                isCurrentPlan = isCurrentPlan,
+                badgeText = badge,
+                titleColor = titleColor,
+                priceColor = priceColor,
+                featureColor = titleColor,
+                dividerColor = MaterialTheme.colorScheme.outlineVariant,
+                tagContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                tagContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                buttonColors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                buttonLabel = buttonLabel,
+                onClick = onClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlanCardBody(
+    title: String,
+    price: String,
+    pricePeriod: String,
+    features: List<String>,
+    isCurrentPlan: Boolean,
+    badgeText: String?,
+    titleColor: Color,
+    priceColor: Color,
+    featureColor: Color,
+    dividerColor: Color,
+    tagContainerColor: Color,
+    tagContentColor: Color,
+    buttonColors: ButtonColors,
+    buttonLabel: String,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(AppSpacing.md),
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = titleColor
             )
+            if (isCurrentPlan) {
+                PlanTag(text = "Current", containerColor = tagContainerColor, contentColor = tagContentColor)
+            } else if (badgeText != null) {
+                PlanTag(text = badgeText, containerColor = tagContainerColor, contentColor = tagContentColor)
+            }
+        }
 
+        Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 text = price,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
                 color = priceColor
             )
+            Spacer(modifier = Modifier.width(AppSpacing.xs))
+            Text(
+                text = pricePeriod,
+                style = MaterialTheme.typography.bodyMedium,
+                color = featureColor
+            )
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(color = dividerColor)
 
+        Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
             features.forEach { feature ->
                 Text(
                     text = feature,
-                    fontSize = 14.sp,
-                    color = featureTextColor
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = onClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (highlight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Text(
-                    text = if (isPremium) "Subscribe Now" else "Continue Free",
-                    color = Color.White
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = featureColor
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(AppSpacing.xs))
+
+        Button(
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            colors = buttonColors
+        ) {
+            Text(text = buttonLabel, style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+@Composable
+private fun PlanTag(text: String, containerColor: Color, contentColor: Color) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = containerColor,
+        contentColor = contentColor
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
+        )
     }
 }
 

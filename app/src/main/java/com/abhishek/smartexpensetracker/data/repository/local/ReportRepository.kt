@@ -7,6 +7,7 @@ import com.abhishek.smartexpensetracker.data.local.room.entity.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 data class ProfitLoss(
     val income: Double,
@@ -15,7 +16,7 @@ data class ProfitLoss(
 )
 
 
-class ReportRepository(
+class ReportRepository @Inject constructor(
     private val expenseDao: ExpenseDao,
     private val incomeDao: IncomeDao,
     private val lendingDao: LendingDao

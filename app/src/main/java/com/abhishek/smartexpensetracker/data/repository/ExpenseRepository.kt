@@ -17,6 +17,8 @@ class ExpenseRepository @Inject constructor(
     override suspend fun delete(expense: ExpenseEntity) = dao.delete(expense)
     override suspend fun totalForDayRange(dayStart: Long, dayEnd: Long): Double = dao.totalForDayRange(dayStart, dayEnd) ?: 0.0
     override suspend fun getUnsynced(): List<ExpenseEntity> = dao.getUnsynced()
+    override suspend fun updateApprovalStatus(expenseId: Long, status: String, approverId: Long?) =
+        dao.updateApprovalStatus(expenseId, status, approverId)
     override fun getExpensesByFilter(filter: DateFilter): Flow<List<ExpenseEntity>> {
         val cal = Calendar.getInstance()
 
@@ -86,6 +88,7 @@ interface IExpenseRepository {
     suspend fun delete(expense: ExpenseEntity)
     suspend fun totalForDayRange(dayStart: Long, dayEnd: Long): Double
     suspend fun getUnsynced(): List<ExpenseEntity>
+    suspend fun updateApprovalStatus(expenseId: Long, status: String, approverId: Long?)
     fun getExpensesByFilter(filter: DateFilter): Flow<List<ExpenseEntity>>
 
 }

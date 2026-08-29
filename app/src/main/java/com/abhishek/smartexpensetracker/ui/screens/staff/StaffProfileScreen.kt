@@ -3,131 +3,161 @@ package com.abhishek.smartexpensetracker.ui.screens.staff
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.abhishek.smartexpensetracker.ui.components.AnimatedAmountText
+import com.abhishek.smartexpensetracker.ui.components.GlassStatTile
+import com.abhishek.smartexpensetracker.ui.components.GradientCard
+import com.abhishek.smartexpensetracker.ui.theme.AppShapes
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 
 @Composable
 fun StaffProfileScreen(staff: Staff, pendingApprovals: Int = 0) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(AppSpacing.md)
     ) {
-        // --- Top Avatar and Name/Role ---
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // Avatar
-            Box(
-                modifier = Modifier
-                    .size(70.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = staff.name.split(" ").map { it.first() }.joinToString(""),
-                    style = MaterialTheme.typography.titleLarge.copy(
+        // --- Hero: avatar / name / role + total expenses, in the same GradientCard
+        // + AnimatedAmountText + GlassStatTile style as Home's summary cards. ---
+        GradientCard(modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Avatar
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .background(Color.White.copy(alpha = 0.22f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = staff.name.split(" ").map { it.first() }.joinToString(""),
+                        style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 28.sp
-                    ),
-                    color = MaterialTheme.colorScheme.primary
-                )
+                        color = Color.White
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(AppSpacing.md))
+
+                Column {
+                    Text(
+                        text = staff.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(AppSpacing.xs))
+                    Box(
+                        modifier = Modifier
+                            .background(Color.White, AppShapes.small)
+                            .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
+                    ) {
+                        Text(
+                            text = staff.role.name,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = roleColor(staff.role)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(AppSpacing.xs))
+                    Text(
+                        text = staff.email,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f)
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.lg))
 
-            Column {
-                Text(text = staff.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text(
-                    text = staff.role.name,
-                    color = when (staff.role) {
-                        Role.Admin -> Color.Red
-                        Role.Approver -> Color.Blue
-                        Role.EntryOnly -> Color(0xFF4CAF50)
-                        Role.Viewer -> Color.Gray
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = staff.email, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-            }
+            Text(
+                "Total Expenses Logged",
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.White.copy(alpha = 0.85f)
+            )
+            Spacer(modifier = Modifier.height(AppSpacing.xs))
+            AnimatedAmountText(
+                amount = staff.totalExpense,
+                style = MaterialTheme.typography.displaySmall,
+                color = Color.White,
+                decimals = 0
+            )
+
+            Spacer(modifier = Modifier.height(AppSpacing.md))
+            GlassStatTile(
+                label = "Pending Approvals",
+                value = "$pendingApprovals",
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppSpacing.md))
 
-        // --- Total Expenses Card ---
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Total Expenses Logged", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "₹${staff.totalExpense}",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // --- Pending Approvals / Contributions ---
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Pending Approvals", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "$pendingApprovals",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // --- Quick Actions (Optional) ---
+        // --- Quick Actions ---
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
         ) {
             Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFD1C4E9)),
-                modifier = Modifier.weight(1f).padding(end = 8.dp).height(80.dp)
+                shape = AppShapes.medium,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                modifier = Modifier.weight(1f).height(80.dp)
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Add Expense", fontWeight = FontWeight.Bold)
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(AppSpacing.xs))
+                    Text(
+                        "Add Expense",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
             }
 
             Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFB2DFDB)),
-                modifier = Modifier.weight(1f).padding(start = 8.dp).height(80.dp)
+                shape = AppShapes.medium,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                ),
+                modifier = Modifier.weight(1f).height(80.dp)
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("View Reports", fontWeight = FontWeight.Bold)
+                    Icon(
+                        imageVector = Icons.Filled.Assessment,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(AppSpacing.xs))
+                    Text(
+                        "View Reports",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
                 }
             }
         }

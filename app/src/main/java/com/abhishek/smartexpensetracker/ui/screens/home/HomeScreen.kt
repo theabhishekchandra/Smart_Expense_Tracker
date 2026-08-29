@@ -8,6 +8,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -21,7 +22,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
+import com.abhishek.smartexpensetracker.ui.components.AnimatedAmountText
+import com.abhishek.smartexpensetracker.ui.components.GradientCard
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Add
@@ -70,16 +73,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.abhishek.smartexpensetracker.core.datastore.Currency
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
@@ -87,6 +87,7 @@ import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
 import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
 import com.abhishek.smartexpensetracker.ui.screens.staff.Role
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
 import kotlin.collections.take
 import kotlin.math.roundToInt
@@ -130,10 +131,10 @@ fun HomeScreen(
                 },
                 actions = {
                     IconButton(onClick = { /* language */ }) {
-                        Icon(Icons.Outlined.Language, contentDescription = "Notifications")
+                        Icon(Icons.Outlined.Language, contentDescription = "Change language")
                     }
                     IconButton(onClick = { /* menu */ }) {
-                        Icon(Icons.Outlined.MoreVert, contentDescription = "More")
+                        Icon(Icons.Outlined.MoreVert, contentDescription = "More options")
                     }
                 }
             )
@@ -156,7 +157,7 @@ fun HomeScreen(
                     if (!isBusiness){
                         Column(
                             horizontalAlignment = Alignment.End,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                         ) {
                             FabMenuItem(
                                 icon = Icons.Default.Person,
@@ -178,7 +179,7 @@ fun HomeScreen(
                     } else {
                         Column(
                             horizontalAlignment = Alignment.End,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                         ) {
                             FabMenuItem(
                                 icon = Icons.Default.Person,
@@ -214,14 +215,18 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp)
+                    .padding(AppSpacing.md)
                     .clickable{ expanded = false},
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
 
                 when(state){
                     is HomeUiState.Loading -> {
-                        item { CircularProgressIndicator() }
+                        item {
+                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
                     is HomeUiState.Error -> {
 //                        item { ErrorCard((state as HomeUiState.Error).message) }
@@ -274,8 +279,13 @@ private fun StaffLeaderboardCard(
     leaderboard: List<StaffSpending>,
     currency: Currency?
 ) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(Modifier.padding(AppSpacing.md), verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             Text("Staff Leaderboard", style = MaterialTheme.typography.titleMedium)
             leaderboard.take(5).forEachIndexed { index, staff ->
                 Row(
@@ -283,8 +293,11 @@ private fun StaffLeaderboardCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("${index + 1}. ${staff.staffName}", fontWeight = FontWeight.Medium)
-                    Text("₹ ${staff.amount.roundToInt()}", fontWeight = FontWeight.SemiBold)
+                    Text("${index + 1}. ${staff.staffName}", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "₹ ${staff.amount.roundToInt()}",
+                        style = MaterialTheme.typography.titleSmall
+                    )
                 }
                 HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
             }
@@ -295,35 +308,32 @@ private fun StaffLeaderboardCard(
 
 @Composable
 private fun TodaySummaryCard(currency: Currency, totalExpense: Double) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text("Today’s spend", style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = "${currency.symbol} ${totalExpense.roundToInt()}",
-                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(Modifier.height(8.dp))
-            // TODO : We can add If need in future.
-            /*Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                AssistChip(onClick = { }, label = { Text("Scan receipt") }, leadingIcon = {
-                    Icon(Icons.Outlined.CameraAlt, contentDescription = null)
-                })
-                AssistChip(onClick = { }, label = { Text("Open reports") }, leadingIcon = {
-                    Icon(Icons.Outlined.Assessment, contentDescription = null)
-                })
-            }*/
-        }
+    GradientCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            "Today's spend",
+            style = MaterialTheme.typography.labelLarge,
+            color = Color.White.copy(alpha = 0.85f)
+        )
+        Spacer(Modifier.height(AppSpacing.xs))
+        AnimatedAmountText(
+            amount = totalExpense,
+            style = MaterialTheme.typography.displaySmall,
+            color = Color.White,
+            prefix = "${currency.symbol} ",
+            decimals = 0
+        )
     }
 }
 
 @Composable
 private fun IncomeVsExpenseCard(currency: Currency, monthExpense : Double, monthIncome : Double) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(Modifier.padding(AppSpacing.md), verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             Text("This month", style = MaterialTheme.typography.titleMedium)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 StatPill(title = "Income", value = monthIncome, currency = currency)
@@ -339,22 +349,30 @@ private fun IncomeVsExpenseCard(currency: Currency, monthExpense : Double, month
 private fun StatPill(title: String, value: Double, currency: Currency) {
     Column(
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.sm),
         horizontalAlignment = Alignment.Start
     ) {
         Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text("${currency.symbol} ${value.roundToInt()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(
+            "${currency.symbol} ${value.roundToInt()}",
+            style = MaterialTheme.typography.titleMedium
+        )
     }
 }
 
 @Composable
 private fun WeeklyTrendCard(points: List<DailyPoint>, currency: Currency?) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(Modifier.padding(AppSpacing.md)) {
             Text("Weekly trend", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(AppSpacing.sm))
             SimpleBarChart(
                 data = points.map { it.amount },
                 labels = points.map { it.day },
@@ -366,20 +384,25 @@ private fun WeeklyTrendCard(points: List<DailyPoint>, currency: Currency?) {
 
 @Composable
 private fun CategoryBreakdownCard(slices: List<CategorySlice>, currency: Currency?) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(Modifier.padding(AppSpacing.md), verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             Text("Category breakdown", style = MaterialTheme.typography.titleMedium)
             slices.forEach { slice ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(slice.name, style = MaterialTheme.typography.bodyMedium)
-                    Text("₹ ${slice.amount.roundToInt()}", fontWeight = FontWeight.Medium)
+                    Text("₹ ${slice.amount.roundToInt()}", style = MaterialTheme.typography.titleSmall)
                 }
                 LinearProgressIndicator(
                     progress = { progressFrom(slice.amount, slices.sumOf { it.amount }) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(MaterialTheme.shapes.extraSmall)
                 )
             }
         }
@@ -388,14 +411,23 @@ private fun CategoryBreakdownCard(slices: List<CategorySlice>, currency: Currenc
 
 @Composable
 private fun BudgetsCard(items: List<BudgetProgress>, currency: Currency?) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(Modifier.padding(AppSpacing.md), verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             Text("Budgets", style = MaterialTheme.typography.titleMedium)
             items.forEach { b ->
                 Column(Modifier.fillMaxWidth()) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(b.category, fontWeight = FontWeight.Medium)
-                        Text("₹ ${b.spent.roundToInt()} / ₹ ${b.limit.roundToInt()}")
+                        Text(b.category, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "₹ ${b.spent.roundToInt()} / ₹ ${b.limit.roundToInt()}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     val pct = (b.spent / (b.limit.coerceAtLeast(1.0))).toFloat().coerceIn(0f, 1f)
                     LinearProgressIndicator(
@@ -403,7 +435,7 @@ private fun BudgetsCard(items: List<BudgetProgress>, currency: Currency?) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(10.dp)
-                            .clip(RoundedCornerShape(8.dp)),
+                            .clip(MaterialTheme.shapes.extraSmall),
                     )
                     if (pct >= 1f) {
                         Text(
@@ -428,51 +460,48 @@ fun AiFeedbackCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
-                .padding(20.dp)
+                .padding(AppSpacing.lg)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
             horizontalAlignment = Alignment.Start
         ) {
             // Title with AI Glow Effect
             Text(
                 text = "🤖 AI Insights & Improvements",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
             )
 
             // AI Tips Section
             tips?.forEach { tip ->
                 ElevatedCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = MaterialTheme.shapes.medium,
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        modifier = Modifier.padding(AppSpacing.md),
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                     ) {
                         Text(
                             tip.title,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             tip.detail,
-                            fontSize = 14.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -483,8 +512,8 @@ fun AiFeedbackCard(
             if (improvements?.isNotEmpty() == true) {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     improvements.forEach { imp ->
                         SuggestionChip(
@@ -494,27 +523,25 @@ fun AiFeedbackCard(
                             label = {
                                 Text(
                                     imp.title,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium
+                                    style = MaterialTheme.typography.labelLarge
                                 )
                             },
                             colors = SuggestionChipDefaults.suggestionChipColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                                 labelColor = MaterialTheme.colorScheme.onPrimaryContainer
                             ),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = MaterialTheme.shapes.medium
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.xs))
 
                 // Info Text
                 Text(
                     "💡 Tap a suggestion to apply quick improvements",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 13.sp
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
         }
@@ -529,12 +556,12 @@ private fun PendingApprovalsCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(AppSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
         ) {
             // Header Row
             Row(
@@ -544,11 +571,10 @@ private fun PendingApprovalsCard(
             ) {
                 Text(
                     "Pending Approvals",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleMedium
                 )
                 TextButton(onClick = {  }) {
-                    Text("View all")
+                    Text("View all", style = MaterialTheme.typography.labelLarge)
                 }
             }
 
@@ -557,15 +583,15 @@ private fun PendingApprovalsCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(MaterialTheme.shapes.small)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(12.dp),
+                        .padding(AppSpacing.sm),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Left Side (Info)
                     Column(Modifier.weight(1f)) {
-                        Text(item.title, fontWeight = FontWeight.Medium)
+                        Text(item.title, style = MaterialTheme.typography.bodyMedium)
                         Text(
                             "$currency ${item.amount.roundToInt()} • ${item.staffName}",
                             style = MaterialTheme.typography.bodySmall,
@@ -574,11 +600,11 @@ private fun PendingApprovalsCard(
                     }
 
                     // Right Side (Actions)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
                         IconButton(
                             onClick = {  },
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(40.dp)
                                 .background(
                                     MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
                                     CircleShape
@@ -586,15 +612,14 @@ private fun PendingApprovalsCard(
                         ) {
                             Icon(
                                 Icons.Outlined.Close,
-                                contentDescription = "Reject",
+                                contentDescription = "Reject ${item.title}",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
-                        Spacer(Modifier.width(2.dp))
                         IconButton(
                             onClick = {  },
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(40.dp)
                                 .background(
                                     MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                     CircleShape
@@ -602,7 +627,7 @@ private fun PendingApprovalsCard(
                         ) {
                             Icon(
                                 Icons.Outlined.Check,
-                                contentDescription = "Approve",
+                                contentDescription = "Approve ${item.title}",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -620,8 +645,13 @@ private fun RecentActivityCard(
     currency: Currency?,
     onAction: NavManager?
 ) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(Modifier.padding(AppSpacing.md), verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             Text("Recent activity", style = MaterialTheme.typography.titleMedium)
             recent.take(5).forEach { item ->
                 Row(
@@ -630,14 +660,14 @@ private fun RecentActivityCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text(item.title, fontWeight = FontWeight.Medium)
+                        Text(item.title, style = MaterialTheme.typography.bodyMedium)
                         Text(
                             "₹ ${item.category} • ₹ ${item.time}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Text("₹ ${item.amount.roundToInt()}", fontWeight = FontWeight.SemiBold)
+                    Text("₹ ${item.amount.roundToInt()}", style = MaterialTheme.typography.titleSmall)
                 }
                 HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
             }
@@ -649,7 +679,7 @@ private fun RecentActivityCard(
 private fun QuickActionsRow(onAction: NavManager?) {
     val ctx = LocalContext.current
 
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
         QuickActionButton("Add Expense", Icons.Outlined.Add) {
 //            onAction(HomeAction.AddExpense)
             Toast.makeText(ctx,"Add", Toast.LENGTH_SHORT).show()
@@ -672,11 +702,12 @@ private fun QuickActionsRow(onAction: NavManager?) {
 private fun QuickActionButton(label: String, icon: ImageVector, onClick: () -> Unit) {
     ElevatedButton(
         onClick = onClick,
+        shape = MaterialTheme.shapes.small,
         modifier = Modifier/*.weight(1f)*/
     ) {
         Icon(icon, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text(label)
+        Spacer(Modifier.width(AppSpacing.xs))
+        Text(label, style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -684,7 +715,7 @@ private fun QuickActionButton(label: String, icon: ImageVector, onClick: () -> U
 fun FabMenuItem(icon: ImageVector, text: String, onClick: () -> Unit) {
     ExtendedFloatingActionButton(
         icon = { Icon(icon, contentDescription = text) },
-        text = { Text(text) },
+        text = { Text(text, style = MaterialTheme.typography.labelLarge) },
         onClick = onClick
     )
 }
@@ -706,22 +737,22 @@ private fun SimpleBarChart(
     val barWidthPx = with(density) { barWidth.toPx() }
     val spacingPx = with(density) { barSpacing.toPx() }
     val corner = with(density) { cornerRadius.toPx() }
+    val barColor = MaterialTheme.colorScheme.primary
 
     Column(Modifier.fillMaxWidth()) {
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(chartHeight)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(MaterialTheme.shapes.medium)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(8.dp)
+                .padding(AppSpacing.sm)
         ) {
             var x = 16f
             data.forEach { value ->
                 val h = (value / max * (heightPx - 24f)).toFloat()
                 drawRoundRect(
-//                    color = MaterialTheme.colorScheme.primary,
-                    color = Color.Blue,
+                    color = barColor,
                     topLeft = Offset(x, size.height - h - 8f),
                     size = Size(barWidthPx, h),
                     cornerRadius = CornerRadius(corner, corner)
@@ -729,7 +760,7 @@ private fun SimpleBarChart(
                 x += barWidthPx + spacingPx
             }
         }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(AppSpacing.xs))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             labels.forEach { label ->
                 Text(label, style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
@@ -740,7 +771,7 @@ private fun SimpleBarChart(
 
 @Composable
 private fun FlowRowWrap(
-    spacing: Dp = 8.dp,
+    spacing: Dp = AppSpacing.sm,
     content: @Composable () -> Unit
 ) {
     // Simple wrap using Column + Row blocks (no experimental APIs)
@@ -766,12 +797,17 @@ private fun TodaySalesExpenseCard(
     expense: Double,
     currency: Currency
 ) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
         Column(
-            Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            Modifier.padding(AppSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
         ) {
-            Text("Today’s Sales & Expenses", style = MaterialTheme.typography.titleMedium)
+            Text("Today's Sales & Expenses", style = MaterialTheme.typography.titleMedium)
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -789,10 +825,15 @@ private fun OutstandingDuesCard(
     dues: List<BorrowerRecord>,
     currency: Currency
 ) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
         Column(
-            Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            Modifier.padding(AppSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
         ) {
             Text("Outstanding Dues", style = MaterialTheme.typography.titleMedium)
             if (dues.isEmpty()) {
@@ -805,7 +846,7 @@ private fun OutstandingDuesCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text(record.borrowerName, fontWeight = FontWeight.Medium)
+                            Text(record.borrowerName, style = MaterialTheme.typography.bodyMedium)
                             Text(
                                 "Due: ${record.dueDate}",
                                 style = MaterialTheme.typography.bodySmall,
@@ -814,7 +855,7 @@ private fun OutstandingDuesCard(
                         }
                         Text(
                             "${currency.symbol}${record.borrowedAmount.roundToInt()}",
-                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -822,7 +863,7 @@ private fun OutstandingDuesCard(
                 }
                 if (dues.size > 5) {
                     TextButton(onClick = { /* nav to full dues list */ }) {
-                        Text("View All")
+                        Text("View All", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -835,10 +876,15 @@ private fun StaffPerformanceCard(
     staffStats: List<StaffSpending>,
     currency: Currency
 ) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
         Column(
-            Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            Modifier.padding(AppSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
         ) {
             Text("Staff Performance", style = MaterialTheme.typography.titleMedium)
             staffStats.take(5).forEach { staff ->
@@ -846,10 +892,10 @@ private fun StaffPerformanceCard(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(staff.staffName, fontWeight = FontWeight.Medium)
+                    Text(staff.staffName, style = MaterialTheme.typography.bodyMedium)
                     Text(
                         "${currency.symbol}${staff.amount.roundToInt()}",
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleSmall
                     )
                 }
                 HorizontalDivider()
@@ -865,10 +911,15 @@ private fun RecentTransactionsCard(
     recent: List<ExpenseItem>,
     currency: Currency
 ) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
         Column(
-            Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            Modifier.padding(AppSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
         ) {
             Text("Recent Transactions", style = MaterialTheme.typography.titleMedium)
             if (recent.isEmpty()) {
@@ -881,7 +932,7 @@ private fun RecentTransactionsCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text(item.title, fontWeight = FontWeight.Medium)
+                            Text(item.title, style = MaterialTheme.typography.bodyMedium)
                             Text(
                                 "${item.category} • ${item.time}",
                                 style = MaterialTheme.typography.bodySmall,
@@ -890,7 +941,7 @@ private fun RecentTransactionsCard(
                         }
                         Text(
                             "${currency.symbol}${item.amount.roundToInt()}",
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                     }
                     HorizontalDivider()

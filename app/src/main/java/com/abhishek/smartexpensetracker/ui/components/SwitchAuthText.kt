@@ -10,7 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 
 @Composable
 fun SwitchAuthText(
@@ -22,12 +22,13 @@ fun SwitchAuthText(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp),
+            .padding(top = AppSpacing.md),
         horizontalArrangement = arrangement
     ) {
-        Text(text = prompt)
+        Text(text = prompt, style = MaterialTheme.typography.bodyMedium)
         Text(
             text = actionText,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { onActionClick() }

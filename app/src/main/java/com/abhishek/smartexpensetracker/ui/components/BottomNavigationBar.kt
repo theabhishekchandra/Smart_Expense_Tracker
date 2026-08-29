@@ -1,19 +1,12 @@
 package com.abhishek.smartexpensetracker.ui.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardVoice
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.ReceiptLong
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -51,20 +44,13 @@ fun BottomNavigationBar(
                         Icon(
                             imageVector = item.icon,
                             contentDescription = item.label,
-                            tint = if (isSelected)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(37.dp)
                         )
                     } else {
                         Icon(
                             imageVector = item.icon,
                             contentDescription = item.label,
-                            tint = if (isSelected)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -72,13 +58,17 @@ fun BottomNavigationBar(
                     if (item.label != "Voice") {
                         Text(
                             text = item.label,
-                            color = if (isSelected)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.labelMedium
                         )
                     }
                 },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
                 alwaysShowLabel = item.label != "Voice"
             )
         }

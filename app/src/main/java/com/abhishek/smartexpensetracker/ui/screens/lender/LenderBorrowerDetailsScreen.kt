@@ -1,18 +1,31 @@
 package com.abhishek.smartexpensetracker.ui.screens.lender
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.abhishek.smartexpensetracker.ui.components.FinanceTopBar
+import com.abhishek.smartexpensetracker.ui.components.AnimatedAmountText
+import com.abhishek.smartexpensetracker.ui.components.GradientCard
+import com.abhishek.smartexpensetracker.ui.theme.AppShapes
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
+import com.abhishek.smartexpensetracker.ui.theme.DangerColor
+import com.abhishek.smartexpensetracker.ui.theme.DangerColorDark
+import com.abhishek.smartexpensetracker.ui.theme.SuccessColor
+import com.abhishek.smartexpensetracker.ui.theme.SuccessColorDark
+import com.abhishek.smartexpensetracker.ui.theme.WarningColor
+import com.abhishek.smartexpensetracker.ui.theme.WarningColorDark
 
 // Data classes
 data class Transaction(
@@ -30,37 +43,72 @@ data class PersonDetail(
     val transactions: List<Transaction>
 )
 
+/** Semantic color for a free-form lending status string ("Paid"/"Pending"/"Overdue"). */
+@Composable
+private fun lendingStatusColor(status: String): Color {
+    val dark = isSystemInDarkTheme()
+    return when (status.lowercase()) {
+        "paid" -> if (dark) SuccessColorDark else SuccessColor
+        "overdue" -> if (dark) DangerColorDark else DangerColor
+        else -> if (dark) WarningColorDark else WarningColor
+    }
+}
+
+@Composable
+private fun LendingStatusBadge(status: String, modifier: Modifier = Modifier) {
+    val color = lendingStatusColor(status)
+    Box(
+        modifier = modifier
+            .background(color.copy(alpha = 0.15f), AppShapes.small)
+            .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
+    ) {
+        Text(
+            text = status,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = color
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LenderBorrowerDetailsScreen(
     person: PersonDetail,
     onMarkAsPaid: () -> Unit,
     onSendReminder: () -> Unit,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
+    onBack: (() -> Unit)? = null
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = person.name, fontSize = 20.sp, fontWeight = FontWeight.Bold) }
+                title = { Text(text = person.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                }
             )
         },
         bottomBar = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .padding(AppSpacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
             ) {
                 if (person.status == "Pending") {
-                    Button(onClick = onMarkAsPaid, modifier = Modifier.weight(1f)) {
+                    Button(onClick = onMarkAsPaid, shape = AppShapes.small, modifier = Modifier.weight(1f)) {
                         Text("Mark as Paid")
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
                 }
-                Button(onClick = onSendReminder, modifier = Modifier.weight(1f)) {
+                Button(onClick = onSendReminder, shape = AppShapes.small, modifier = Modifier.weight(1f)) {
                     Text("Send Reminder")
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
+                OutlinedButton(onClick = onEdit, shape = AppShapes.small, modifier = Modifier.weight(1f)) {
                     Text("Edit")
                 }
             }
@@ -69,50 +117,104 @@ fun LenderBorrowerDetailsScreen(
         Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(AppSpacing.md)
                 .fillMaxSize()
         ) {
-            // Summary Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                elevation = CardDefaults.cardElevation(6.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Total Amount: ₹${person.totalAmount}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("Status: ${person.status}", fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
-                    Text("Last Updated: ${person.lastUpdated}", fontSize = 14.sp)
+            // Summary hero: total amount owed, in the same GradientCard +
+            // AnimatedAmountText style as Home's summary cards.
+            GradientCard(modifier = Modifier.fillMaxWidth().padding(bottom = AppSpacing.md)) {
+                Text(
+                    "Total Amount",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = Color.White.copy(alpha = 0.85f)
+                )
+                Spacer(modifier = Modifier.height(AppSpacing.xs))
+                AnimatedAmountText(
+                    amount = person.totalAmount,
+                    style = MaterialTheme.typography.displaySmall,
+                    color = Color.White,
+                    decimals = 0
+                )
+                Spacer(modifier = Modifier.height(AppSpacing.sm))
+                Box(
+                    modifier = Modifier
+                        .background(Color.White, AppShapes.small)
+                        .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
+                ) {
+                    Text(
+                        text = person.status,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = lendingStatusColor(person.status)
+                    )
                 }
+                Spacer(modifier = Modifier.height(AppSpacing.xs))
+                Text(
+                    "Last Updated: ${person.lastUpdated}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.85f)
+                )
             }
 
             // Transaction History Title
-            Text("Transaction History", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(modifier = Modifier.height(8.dp))
+            Text("Transaction History", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(AppSpacing.sm))
 
             // Transaction List
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(person.transactions) { transaction ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        elevation = CardDefaults.cardElevation(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+            if (person.transactions.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(AppSpacing.sm))
+                        Text(
+                            "No transactions yet",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+                ) {
+                    items(person.transactions) { transaction ->
+                        Card(
+                            shape = AppShapes.medium,
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Column {
-                                Text("Date: ${transaction.date}", fontWeight = FontWeight.Medium)
-                                Text("Notes: ${transaction.notes}", fontSize = 12.sp)
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text("₹${transaction.amount}", fontWeight = FontWeight.Bold)
-                                Text(transaction.status, color = MaterialTheme.colorScheme.primary)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(AppSpacing.sm),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(transaction.date, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                                    Text(
+                                        transaction.notes,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    AnimatedAmountText(
+                                        amount = transaction.amount,
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        decimals = 0
+                                    )
+                                    Spacer(modifier = Modifier.height(AppSpacing.xs))
+                                    LendingStatusBadge(status = transaction.status)
+                                }
                             }
                         }
                     }

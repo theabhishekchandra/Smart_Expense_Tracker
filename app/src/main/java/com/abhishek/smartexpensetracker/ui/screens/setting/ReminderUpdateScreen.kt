@@ -4,20 +4,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +33,7 @@ fun ReminderUpdateScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reminder & Update", fontWeight = FontWeight.Bold) },
+                title = { Text("Reminder & Update", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = { onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -49,9 +45,9 @@ fun ReminderUpdateScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .padding(AppSpacing.md)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
 
             // Select Person
@@ -59,16 +55,17 @@ fun ReminderUpdateScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { showPersonPicker = true },
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(AppSpacing.md),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Person, contentDescription = "Person", tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(selectedPerson, fontSize = 16.sp)
+                    Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(AppSpacing.sm + AppSpacing.xs))
+                    Text(selectedPerson, style = MaterialTheme.typography.bodyLarge)
                 }
             }
 
@@ -77,6 +74,7 @@ fun ReminderUpdateScreen(
                 value = amount,
                 onValueChange = { amount = it },
                 label = { Text("Enter Amount") },
+                shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -100,13 +98,13 @@ fun ReminderUpdateScreen(
             // Message Preview
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF6F6F6))
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Preview Message:", fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(messageText, fontSize = 16.sp)
+                Column(modifier = Modifier.padding(AppSpacing.md)) {
+                    Text("Preview Message:", style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(AppSpacing.sm))
+                    Text(messageText, style = MaterialTheme.typography.bodyLarge)
                 }
             }
 
@@ -115,11 +113,11 @@ fun ReminderUpdateScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(onClick = { /* TODO: Send via WhatsApp */ }) {
-                    Text("Send WhatsApp")
+                Button(onClick = { /* TODO: Send via WhatsApp */ }, shape = MaterialTheme.shapes.large) {
+                    Text("Send WhatsApp", style = MaterialTheme.typography.labelLarge)
                 }
-                Button(onClick = { /* TODO: Send via SMS */ }) {
-                    Text("Send SMS")
+                Button(onClick = { /* TODO: Send via SMS */ }, shape = MaterialTheme.shapes.large) {
+                    Text("Send SMS", style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
@@ -135,9 +133,10 @@ fun ReminderUpdateScreen(
                     items(listOf("Amit", "Neha", "Rahul", "Priya")) { person ->
                         Text(
                             text = person,
+                            style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp)
+                                .padding(AppSpacing.sm + AppSpacing.xs)
                                 .clickable {
                                     selectedPerson = person
                                     showPersonPicker = false

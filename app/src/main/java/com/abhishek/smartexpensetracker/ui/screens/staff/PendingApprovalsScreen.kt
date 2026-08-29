@@ -5,19 +5,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import com.abhishek.smartexpensetracker.ui.theme.AppShapes
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 
 // --- Sample Data Class ---
 data class StaffExpensePending(
@@ -44,18 +45,24 @@ fun PendingApprovalsScreen() {
     var selectedExpense by remember { mutableStateOf<StaffExpensePending?>(null) }
     var showDialog by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(AppSpacing.md)) {
         Text(
             text = "Pending Approvals",
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppSpacing.md))
 
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(samplePendingExpenses) { expense ->
-                StaffExpenseCard(expense, onApproveReject = { selectedExpense = it; showDialog = true })
-                Spacer(modifier = Modifier.height(8.dp))
+        if (samplePendingExpenses.isEmpty()) {
+            EmptyApprovalsState()
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+            ) {
+                items(samplePendingExpenses) { expense ->
+                    StaffExpenseCard(expense, onApproveReject = { selectedExpense = it; showDialog = true })
+                }
             }
         }
     }
@@ -77,90 +84,92 @@ fun PendingApprovalsScreen() {
 }
 
 @Composable
+private fun EmptyApprovalsState() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Filled.Inbox,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(modifier = Modifier.height(AppSpacing.sm))
+            Text(
+                text = "No pending approvals",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
 fun StaffExpenseCard(expense: StaffExpensePending, onApproveReject: (StaffExpensePending) -> Unit) {
     Card(
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+        shape = AppShapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(AppSpacing.md)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Receipt thumbnail placeholder
                 Box(
                     modifier = Modifier
-                        .size(100.dp)
-                        .background(Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
+                        .size(72.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, AppShapes.small)
                 ) {
                     expense.receiptImage?.let {
                         Image(
                             painter = painterResource(id = it),
-                            contentDescription = "Receipt",
+                            contentDescription = "Receipt for ${expense.title}",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppSpacing.sm))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(expense.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text("Amount: ₹${expense.amount}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Staff: ${expense.staffName}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Category: ${expense.category}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Date: ${expense.date}", style = MaterialTheme.typography.bodyMedium)
+                    Text(expense.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(AppSpacing.xs))
+                    Text("₹${expense.amount} • ${expense.category}", style = MaterialTheme.typography.bodyMedium)
+                    Text(expense.staffName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(expense.date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
-                // Status badge
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = when (expense.status) {
-                                Status.Pending -> Color(0xFFFFF59D)
-                                Status.Approved -> Color(0xFF81C784)
-                                Status.Rejected -> Color(0xFFE57373)
-                            },
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = expense.status.name,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                }
+                Spacer(modifier = Modifier.width(AppSpacing.xs))
+                StatusBadge(status = expense.status)
             }
 
             // Rejection note
             if (expense.status == Status.Rejected && !expense.rejectionNotes.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.sm))
                 Text(
-                    text = "Rejection Note: ${expense.rejectionNotes}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFFD32F2F)
+                    text = "Rejection note: ${expense.rejectionNotes}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = statusColor(Status.Rejected)
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
             // Buttons only for Pending
             if (expense.status == Status.Pending) {
-                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.height(AppSpacing.sm))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm, Alignment.End),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedButton(
+                        onClick = { onApproveReject(expense.copy(status = Status.Rejected)) },
+                        shape = AppShapes.small,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = statusColor(Status.Rejected))
+                    ) { Text("Reject") }
+
                     Button(
                         onClick = { onApproveReject(expense.copy(status = Status.Approved)) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF81C784)),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = AppShapes.small,
+                        colors = ButtonDefaults.buttonColors(containerColor = statusColor(Status.Approved))
                     ) { Text("Approve") }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = { onApproveReject(expense.copy(status = Status.Rejected)) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE57373)),
-                        shape = RoundedCornerShape(12.dp)
-                    ) { Text("Reject") }
                 }
             }
         }
@@ -174,19 +183,25 @@ fun ApproveRejectDialog(expense: StaffExpensePending, onDismiss: () -> Unit, onA
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            shape = AppShapes.large,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+            modifier = Modifier.fillMaxWidth().padding(AppSpacing.md)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Approve or Reject Expense", fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("Title: ${expense.title}")
-                Text("Amount: ₹${expense.amount}")
-                Text("Staff: ${expense.staffName}")
-                Text("Category: ${expense.category}")
-                Text("Date: ${expense.date}")
+            Column(modifier = Modifier.padding(AppSpacing.md)) {
+                Text(
+                    "Approve or Reject Expense",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(AppSpacing.sm))
+                Text(expense.title, style = MaterialTheme.typography.bodyMedium)
+                Text("₹${expense.amount}", style = MaterialTheme.typography.bodyMedium)
+                Text(expense.staffName, style = MaterialTheme.typography.bodyMedium)
+                Text(expense.category, style = MaterialTheme.typography.bodyMedium)
+                Text(expense.date, style = MaterialTheme.typography.bodyMedium)
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.sm))
 
                 OutlinedTextField(
                     value = note,
@@ -195,21 +210,21 @@ fun ApproveRejectDialog(expense: StaffExpensePending, onDismiss: () -> Unit, onA
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.md))
 
                 Row(
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm, Alignment.End),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     TextButton(onClick = onDismiss) { Text("Cancel") }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { onAction(expense.copy(status = Status.Approved, rejectionNotes = note)) }) {
-                        Text("Approve")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { onAction(expense.copy(status = Status.Rejected, rejectionNotes = note)) }) {
-                        Text("Reject")
-                    }
+                    OutlinedButton(
+                        onClick = { onAction(expense.copy(status = Status.Rejected, rejectionNotes = note)) },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = statusColor(Status.Rejected))
+                    ) { Text("Reject") }
+                    Button(
+                        onClick = { onAction(expense.copy(status = Status.Approved, rejectionNotes = note)) },
+                        colors = ButtonDefaults.buttonColors(containerColor = statusColor(Status.Approved))
+                    ) { Text("Approve") }
                 }
             }
         }

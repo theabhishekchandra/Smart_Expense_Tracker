@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
 
 
@@ -28,40 +30,40 @@ fun BottomBarButton(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(AppSpacing.md),
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
     ) {
         OutlinedButton(
             onClick = onFirstClick ,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.onPrimary,
-                contentColor = MaterialTheme.colorScheme.secondary
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
             border = BorderStroke(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.secondary
+                color = MaterialTheme.colorScheme.outline
             ),
             shape = MaterialTheme.shapes.small
         ) {
-            Text(text = firstButtonText)
+            Text(text = firstButtonText, style = MaterialTheme.typography.labelLarge)
         }
 
         Button(
             onClick = onSecondClick,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ),
             enabled = secondButtonEnabled,
-            border = BorderStroke(
-                width = 0.5.dp,
-                color = MaterialTheme.colorScheme.onPrimary
-            ),
             shape = MaterialTheme.shapes.small
         ) {
-            Text(text = secondButtonText)
+            Text(text = secondButtonText, style = MaterialTheme.typography.labelLarge)
         }
     }
 }

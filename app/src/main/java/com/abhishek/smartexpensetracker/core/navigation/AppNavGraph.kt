@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.EntryPointAccessors
 import androidx.compose.ui.platform.LocalContext
 import com.abhishek.smartexpensetracker.core.di.NavManagerEntryPoint
+import com.abhishek.smartexpensetracker.ui.theme.Motion
 
 // Root NavHost that connects NavController and sets up screen graphs
 @Composable
@@ -28,7 +29,11 @@ fun AppNavGraph() {
 
     NavHost(
         navController = navController,
-        startDestination = ScreenRoutes.Splash.route
+        startDestination = ScreenRoutes.Splash.route,
+        enterTransition = Motion.screenEnter,
+        exitTransition = Motion.screenExit,
+        popEnterTransition = Motion.screenPopEnter,
+        popExitTransition = Motion.screenPopExit
     ) {
         splashNavGraph(navManager)
         authNavGraph(navManager)

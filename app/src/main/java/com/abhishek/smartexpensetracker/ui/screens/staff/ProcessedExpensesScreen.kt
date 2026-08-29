@@ -1,20 +1,19 @@
 package com.abhishek.smartexpensetracker.ui.screens.staff
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterAltOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.abhishek.smartexpensetracker.ui.theme.AppShapes
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 
 @Composable
 fun ProcessedExpensesScreen() {
@@ -22,16 +21,16 @@ fun ProcessedExpensesScreen() {
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var filteredExpenses by remember { mutableStateOf(samplePendingExpenses.filter { it.status != Status.Pending }) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(AppSpacing.md)) {
         Text(
             text = "Processed Expenses",
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppSpacing.md))
 
         // --- Filter Row ---
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             DropdownFilter("Staff", listOf("All") + samplePendingExpenses.map { it.staffName }.distinct(), selectedStaff) {
                 selectedStaff = it
                 filteredExpenses = samplePendingExpenses.filter { exp ->
@@ -49,13 +48,39 @@ fun ProcessedExpensesScreen() {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppSpacing.md))
 
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(filteredExpenses) { expense ->
-                ProcessedExpenseCard(expense)
-                Spacer(modifier = Modifier.height(8.dp))
+        if (filteredExpenses.isEmpty()) {
+            EmptyProcessedState()
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+            ) {
+                items(filteredExpenses) { expense ->
+                    ProcessedExpenseCard(expense)
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyProcessedState() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Filled.FilterAltOff,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(modifier = Modifier.height(AppSpacing.sm))
+            Text(
+                text = "No processed expenses match this filter",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -64,17 +89,18 @@ fun ProcessedExpensesScreen() {
 fun DropdownFilter(label: String, options: List<String>, selected: String?, onSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(text = "${label}: ${selected ?: "All"}")
+        OutlinedButton(onClick = { expanded = true }, shape = AppShapes.small) {
+            Text(text = "$label: ${selected ?: "All"}", style = MaterialTheme.typography.labelLarge)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
-                DropdownMenuItem(onClick = {
-                    onSelected(option)
-                    expanded = false
-                }) {
-                    Text(option)
-                }
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onSelected(option)
+                        expanded = false
+                    }
+                )
             }
         }
     }
@@ -83,50 +109,31 @@ fun DropdownFilter(label: String, options: List<String>, selected: String?, onSe
 @Composable
 fun ProcessedExpenseCard(expense: StaffExpensePending) {
     Card(
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+        shape = AppShapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(AppSpacing.md)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(expense.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("Amount: ₹${expense.amount}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Staff: ${expense.staffName}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Category: ${expense.category}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Date: ${expense.date}", style = MaterialTheme.typography.bodyMedium)
+                    Text(expense.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(AppSpacing.xs))
+                    Text("₹${expense.amount} • ${expense.category}", style = MaterialTheme.typography.bodyMedium)
+                    Text(expense.staffName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(expense.date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
-                // Status badge
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = when (expense.status) {
-                                Status.Approved -> Color(0xFF81C784)
-                                Status.Rejected -> Color(0xFFE57373)
-                                else -> Color.Gray
-                            },
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = expense.status.name,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                }
+                StatusBadge(status = expense.status)
             }
 
             // Show rejection note if rejected
             if (expense.status == Status.Rejected && !expense.rejectionNotes.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.sm))
                 Text(
-                    text = "Rejection Note: ${expense.rejectionNotes}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFFD32F2F)
+                    text = "Rejection note: ${expense.rejectionNotes}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = statusColor(Status.Rejected)
                 )
             }
         }

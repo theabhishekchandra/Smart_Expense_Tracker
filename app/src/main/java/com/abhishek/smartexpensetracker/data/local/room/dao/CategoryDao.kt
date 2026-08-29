@@ -10,10 +10,13 @@ import com.abhishek.smartexpensetracker.data.model.Category
 @Dao
 interface CategoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCategory(category: CategoryEntity)
+    suspend fun insertCategory(category: CategoryEntity): Long
 
     @Query("SELECT * FROM categories ORDER BY name ASC")
     suspend fun getAllCategories(): List<CategoryEntity>
+
+    @Query("SELECT * FROM categories WHERE name = :name COLLATE NOCASE LIMIT 1")
+    suspend fun getCategoryByName(name: String): CategoryEntity?
 
     @Query("DELETE FROM categories WHERE categoryId = :id")
     suspend fun deleteCategory(id: Long)

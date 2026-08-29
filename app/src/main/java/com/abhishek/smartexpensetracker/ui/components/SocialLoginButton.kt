@@ -1,15 +1,16 @@
 package com.abhishek.smartexpensetracker.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,13 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.abhishek.smartexpensetracker.R
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 import com.abhishek.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
 
 
@@ -39,11 +40,15 @@ fun SocialLoginButton(
 
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = Color.Transparent,
             contentColor = contentColor
-        )
+        ),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
+        shape = MaterialTheme.shapes.small
 
     ) {
         Row(
@@ -65,9 +70,9 @@ fun SocialLoginButton(
                     modifier = Modifier.size(20.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(AppSpacing.sm))
 
-            Text(text = label, color = contentColor)
+            Text(text = label, color = contentColor, style = MaterialTheme.typography.labelLarge)
         }
 
     }

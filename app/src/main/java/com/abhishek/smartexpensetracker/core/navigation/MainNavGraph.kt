@@ -1,10 +1,10 @@
 package com.abhishek.smartexpensetracker.core.navigation
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.abhishek.smartexpensetracker.data.model.ExpenseDM
-import com.abhishek.smartexpensetracker.data.model.ExpenseStatus
 import com.abhishek.smartexpensetracker.data.model.UserRole
 import com.abhishek.smartexpensetracker.ui.screens.business.EditBusinessDetailsScreen
 import com.abhishek.smartexpensetracker.ui.screens.expense.AddExpenseScreen
@@ -20,18 +20,6 @@ import com.abhishek.smartexpensetracker.ui.screens.setting.SettingsViewModel
 import com.abhishek.smartexpensetracker.ui.screens.subscription.SubscriptionPlansScreen
 
 fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
-
-    // TODO : Delete Dummy data.
-    val expense = listOf<ExpenseDM>(
-        ExpenseDM(title = "Tea", amount = 10.0, category = "Food", notes = "Morning tea", receiptUri = null),
-        ExpenseDM(title = "Bus", amount = 20.0, category = "Transport", notes = "Office travel", receiptUri = null),
-        ExpenseDM(title = "Lunch", userName = "Rohit Kumar", amount = 100.0, category = "Food", notes = "Lunch with friends", receiptUri = null, timestamp = 1624556800000, status = ExpenseStatus.APPROVED),
-        ExpenseDM(title = "Dinner", amount = 150.0, category = "Food", notes = "Dinner with family", receiptUri = null),
-        ExpenseDM(title = "Taxi", amount = 50.0, category = "Transport", notes = "Airport taxi", receiptUri = null),
-        ExpenseDM(title = "Hotel", amount = 200.0, category = "Accommodation", notes = "Hotel stay", receiptUri = null),
-        ExpenseDM(title = "Train", amount = 30.0, category = "Transport", notes = "Train ticket", receiptUri = null),
-        ExpenseDM(title = "Car", amount = 100.0, category = "Transport", notes = "Car rental", receiptUri = null),
-    )
 
     composable(
         route = ScreenRoutes.Home.route
@@ -54,19 +42,28 @@ fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
     }
     composable(ScreenRoutes.AddExpense.route) {
         AddExpenseScreen(
+            navManager = navManager,
             userRole = UserRole.ADMIN,
             isBusinessMode = true
         )
     }
-    composable(ScreenRoutes.ExpenseDetail.route) { navBackStackEntry ->
+    composable(
+        route = ScreenRoutes.ExpenseDetail.route,
+        arguments = RoutesConst.EXPENSE_DETAIL_ARGUMENT
+    ) { navBackStackEntry ->
         val viewModel: ExpenseViewModel = hiltViewModel(navBackStackEntry)
+        val expenseId = navBackStackEntry.arguments?.getString(RoutesConst.EXPENSE_ID)?.toLongOrNull()
+        val uiState by viewModel.uiState.collectAsState()
+        val expense = uiState.expenses.find { it.id == expenseId }
 
-        ExpenseDetailScreen(
-            navManager = navManager,
-            expense = expense[2],
-            userRole = UserRole.ADMIN,
-            viewModel = viewModel
-        )
+        if (expense != null) {
+            ExpenseDetailScreen(
+                navManager = navManager,
+                expense = expense,
+                userRole = UserRole.ADMIN,
+                viewModel = viewModel
+            )
+        }
     }
 
     composable(ScreenRoutes.Settings.route) { navBackStackEntry ->

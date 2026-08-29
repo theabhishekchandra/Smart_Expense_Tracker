@@ -12,9 +12,26 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
+
+// A small, theme-derived palette shared by the charts in this package so segments/bars/lines
+// pull from the active Material 3 color scheme (and therefore adapt to flavor + dark mode)
+// instead of using arbitrary hardcoded hex colors.
+@Composable
+fun chartColorPalette(): List<Color> {
+    val scheme = MaterialTheme.colorScheme
+    return listOf(
+        scheme.primary,
+        scheme.tertiary,
+        scheme.secondary,
+        scheme.error,
+        scheme.primaryContainer,
+        scheme.tertiaryContainer,
+        scheme.secondaryContainer,
+    )
+}
 
 // ----------------- PIE CHART -----------------
 
@@ -51,7 +68,7 @@ fun BarChart(
     modifier: Modifier = Modifier
 ) {
     val maxValue = data.values.maxOrNull() ?: 1f
-    val barSpacing = 16.dp
+    val barSpacing = AppSpacing.md
 
     Row(
         modifier = modifier,
@@ -78,7 +95,7 @@ fun BarChart(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = AppSpacing.xs)
                 )
             }
             Spacer(modifier = Modifier.width(barSpacing))
@@ -120,27 +137,31 @@ fun LineChart(
 @Composable
 fun ReportsScreenA(
     isBusinessUser: Boolean = false,
-    aiInsights: String = "Your travel expenses are 20% higher this month 🚀"
+    aiInsights: String = "Your travel expenses are 20% higher this month"
 ) {
+    val palette = chartColorPalette()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(AppSpacing.md)
     ) {
-        Text("Reports & Analytics", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text("Reports & Analytics", style = MaterialTheme.typography.headlineSmall)
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(AppSpacing.md))
 
         // Pie Chart - Category Breakdown
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
-            Column(Modifier.padding(16.dp)) {
+            Column(Modifier.padding(AppSpacing.md)) {
                 Text("Category Breakdown", style = MaterialTheme.typography.titleMedium)
                 PieChart(
                     data = mapOf("Food" to 40f, "Travel" to 25f, "Bills" to 35f),
-                    colors = listOf(Color(0xFF4CAF50), Color(0xFF2196F3), Color(0xFFFF9800)),
+                    colors = palette,
                     modifier = Modifier
                         .size(200.dp)
                         .align(Alignment.CenterHorizontally)
@@ -148,14 +169,16 @@ fun ReportsScreenA(
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(AppSpacing.md))
 
         // Bar Chart - Monthly
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
-            Column(Modifier.padding(16.dp)) {
+            Column(Modifier.padding(AppSpacing.md)) {
                 Text("Monthly Expenses", style = MaterialTheme.typography.titleMedium)
                 BarChart(
                     data = mapOf("Jan" to 2000f, "Feb" to 3500f, "Mar" to 1800f, "Apr" to 4000f),
@@ -166,14 +189,16 @@ fun ReportsScreenA(
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(AppSpacing.md))
 
         // Line Chart - Trend
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
-            Column(Modifier.padding(16.dp)) {
+            Column(Modifier.padding(AppSpacing.md)) {
                 Text("Spending Trend", style = MaterialTheme.typography.titleMedium)
                 LineChart(
                     data = listOf(500f, 1200f, 800f, 2000f, 1800f, 2200f),
@@ -184,18 +209,19 @@ fun ReportsScreenA(
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(AppSpacing.md))
 
         // AI Insights
         Card(
             modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Text(
                 aiInsights,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(16.dp)
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.padding(AppSpacing.md)
             )
         }
     }

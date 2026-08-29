@@ -5,13 +5,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-//noinspection UsingMaterialAndMaterial3Libraries
-import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.GroupOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.tooling.preview.Preview
+import com.abhishek.smartexpensetracker.ui.theme.AppShapes
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
+import com.abhishek.smartexpensetracker.ui.theme.RoleAdmin
+import com.abhishek.smartexpensetracker.ui.theme.RoleApprover
+import com.abhishek.smartexpensetracker.ui.theme.RoleEntry
+import com.abhishek.smartexpensetracker.ui.theme.RoleViewer
 
 // --- Staff Model ---
 data class Staff(
@@ -36,6 +40,32 @@ enum class Role {
     Admin, Approver, EntryOnly, Viewer
 }
 
+/** Semantic color for a staff [Role], shared by the staff screens so badges stay consistent. */
+fun roleColor(role: Role): Color = when (role) {
+    Role.Admin -> RoleAdmin
+    Role.Approver -> RoleApprover
+    Role.EntryOnly -> RoleEntry
+    Role.Viewer -> RoleViewer
+}
+
+/** Small rounded role chip shared across the staff screens. */
+@Composable
+fun RoleBadge(role: Role, modifier: Modifier = Modifier) {
+    val color = roleColor(role)
+    Box(
+        modifier = modifier
+            .background(color.copy(alpha = 0.15f), AppShapes.small)
+            .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
+    ) {
+        Text(
+            text = role.name,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = color
+        )
+    }
+}
+
 // --- Sample Staff List ---
 val sampleStaffList = mutableStateListOf(
     Staff(1, "Staff002", "John Doe", "john@example.com", 1200.0, Role.EntryOnly),
@@ -47,7 +77,7 @@ val sampleStaffList = mutableStateListOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StaffManagementScreen() {
-    var showAddDialog by remember { mutableStateOf(true) }
+    var showAddDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -62,14 +92,18 @@ fun StaffManagementScreen() {
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-            ) {
-                items(sampleStaffList, key = { it.id }) { staff ->
-                    ModernStaffCard(staff)
-                    Spacer(modifier = Modifier.height(8.dp))
+            if (sampleStaffList.isEmpty()) {
+                EmptyStaffState()
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(AppSpacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+                ) {
+                    items(sampleStaffList, key = { it.id }) { staff ->
+                        ModernStaffCard(staff)
+                    }
                 }
             }
 
@@ -91,32 +125,51 @@ fun StaffManagementScreen() {
     }
 }
 
+@Composable
+private fun EmptyStaffState() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Filled.GroupOff,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(modifier = Modifier.height(AppSpacing.sm))
+            Text(
+                text = "No staff added yet",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
 // --- Staff Card ---
 @Composable
 fun ModernStaffCard(staff: Staff) {
     var expandedDropdown by remember { mutableStateOf(false) }
 
     Card(
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
+        shape = AppShapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(16.dp),
+                .padding(AppSpacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // --- Profile Avatar ---
             Box(
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(48.dp)
                     .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                        RoundedCornerShape(25.dp)
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        AppShapes.extraLarge
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -127,76 +180,73 @@ fun ModernStaffCard(staff: Staff) {
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppSpacing.sm))
 
             // --- Staff Info ---
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = staff.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(text = staff.email, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = staff.email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(AppSpacing.xs))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     // Staff ID Badge
                     Text(
                         text = staff.staffId,
                         modifier = Modifier
-                            .background(Color.LightGray, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.bodySmall
+                            .background(MaterialTheme.colorScheme.surfaceVariant, AppShapes.extraSmall)
+                            .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppSpacing.sm))
 
                     // Total Expenses
                     Text(
                         text = "₹${staff.totalExpense}",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppSpacing.sm))
 
             // --- Role Dropdown ---
             Box {
-                Text(
-                    text = staff.role.name,
-                    color = when (staff.role) {
-                        Role.Admin -> Color.Red
-                        Role.Approver -> Color.Blue
-                        Role.EntryOnly -> Color(0xFF4CAF50)
-                        Role.Viewer -> Color.Gray
-                    },
-                    modifier = Modifier
-                        .background(Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                        .clickable { expandedDropdown = true }
+                RoleBadge(
+                    role = staff.role,
+                    modifier = Modifier.clickable { expandedDropdown = true }
                 )
 
                 DropdownMenu(
                     expanded = expandedDropdown,
                     onDismissRequest = { expandedDropdown = false }
                 ) {
-                    Role.values().forEach { role ->
-                        DropdownMenuItem(onClick = {
-                            staff.role = role
-                            expandedDropdown = false
-                        }) {
-                            Text(text = role.name)
-                        }
+                    Role.entries.forEach { role ->
+                        DropdownMenuItem(
+                            text = { Text(text = role.name) },
+                            onClick = {
+                                staff.role = role
+                                expandedDropdown = false
+                            }
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(AppSpacing.xs))
 
             // --- Edit / Delete Icons ---
             Column(horizontalAlignment = Alignment.End) {
                 IconButton(onClick = { /* TODO: Edit functionality */ }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit Staff")
+                    Icon(Icons.Default.Edit, contentDescription = "Edit ${staff.name}")
                 }
                 IconButton(onClick = { sampleStaffList.remove(staff) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete Staff", tint = Color.Red)
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete ${staff.name}",
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
@@ -219,17 +269,19 @@ fun StaffDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            shape = RoundedCornerShape(16.dp),
+            shape = AppShapes.large,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(AppSpacing.md)
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column(modifier = Modifier.padding(AppSpacing.lg)) {
                 Text(
                     text = if (staffToEdit == null) "Add New Staff" else "Update Staff",
                     style = MaterialTheme.typography.headlineSmall
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.md))
 
                 // Name TextField
                 OutlinedTextField(
@@ -238,7 +290,7 @@ fun StaffDialog(
                     label = { Text("Name") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.sm))
 
                 // Email TextField
                 OutlinedTextField(
@@ -247,7 +299,7 @@ fun StaffDialog(
                     label = { Text("Email") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.sm))
 
                 // Staff ID display
                 OutlinedTextField(
@@ -257,40 +309,37 @@ fun StaffDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.sm))
 
                 // Role Dropdown
                 var expanded by remember { mutableStateOf(false) }
-                Box {
+                Column {
                     Text(
-                        text = "Role: ${selectedRole.name}",
-                        color = when (selectedRole) {
-                            Role.Admin -> Color.Red
-                            Role.Approver -> Color.Blue
-                            Role.EntryOnly -> Color(0xFF4CAF50)
-                            Role.Viewer -> Color.Gray
-                        },
-                        modifier = Modifier
-                            .background(Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                            .clickable { expanded = true }
+                        text = "Role",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        Role.entries.forEach { role ->
-                            DropdownMenuItem(onClick = {
-                                selectedRole = role
-                                expanded = false
-                            }) {
-                                Text(
-                                    text = role.name,
-                                    color = when (role) {
-                                        Role.Admin -> Color.Red
-                                        Role.Approver -> Color.Blue
-                                        Role.EntryOnly -> Color(0xFF4CAF50)
-                                        Role.Viewer -> Color.Gray
+                    Spacer(modifier = Modifier.height(AppSpacing.xs))
+                    Box {
+                        RoleBadge(
+                            role = selectedRole,
+                            modifier = Modifier.clickable { expanded = true }
+                        )
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            Role.entries.forEach { role ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = role.name,
+                                            color = roleColor(role)
+                                        )
+                                    },
+                                    onClick = {
+                                        selectedRole = role
+                                        expanded = false
                                     }
                                 )
                             }
@@ -298,17 +347,16 @@ fun StaffDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.lg))
 
                 // Action Buttons
                 Row(
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm, Alignment.End),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text("Cancel")
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
                     Button(onClick = {
                         if (name.isNotBlank() && email.isNotBlank()) {
                             val newStaff = Staff(

@@ -21,4 +21,7 @@ interface ContactDao {
 
     @Query("SELECT * FROM contacts WHERE contactId = :id")
     fun getById(id: Long): Flow<ContactEntity?>
+
+    @Query("SELECT * FROM contacts WHERE phone = :phone LIMIT 1")
+    suspend fun getByPhone(phone: String): ContactEntity?
 }

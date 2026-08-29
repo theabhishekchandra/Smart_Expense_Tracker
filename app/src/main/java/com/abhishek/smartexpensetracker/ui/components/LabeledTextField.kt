@@ -9,13 +9,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 
 @Composable
 fun LabeledTextField(
@@ -37,8 +34,8 @@ fun LabeledTextField(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium),
-            modifier = Modifier.padding(bottom = 4.dp)
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = AppSpacing.xs)
         )
         OutlinedTextField(
             value = value,
@@ -55,14 +52,15 @@ fun LabeledTextField(
             leadingIcon = leadingIcon,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
             visualTransformation = visualTransformation,
-            trailingIcon = trailingIcon
+            trailingIcon = trailingIcon,
+            shape = MaterialTheme.shapes.small
         )
         if (isError && errorText.isNotEmpty()) {
             Text(
                 text = errorText,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = AppSpacing.xs)
             )
         }
     }

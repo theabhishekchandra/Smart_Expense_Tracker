@@ -1,28 +1,35 @@
 package com.abhishek.smartexpensetracker.ui.screens.login
 
 import android.util.Patterns
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.abhishek.smartexpensetracker.R
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.core.utils.Utils.Companion.isPhoneNumber
 import com.abhishek.smartexpensetracker.ui.components.*
-import com.abhishek.smartexpensetracker.ui.components.AppButton
 import com.abhishek.smartexpensetracker.ui.screens.login.viewmodel.AuthViewModel
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
+import com.abhishek.smartexpensetracker.ui.theme.heroGradientVertical
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -44,35 +51,51 @@ fun LoginScreen(
 
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
 
-    LaunchedEffect(Unit/*viewModel?.errorMessage*/) {
-        /*val message = viewModel?.errorMessage?.takeIf { it.isNotBlank() }
-        message?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-        }*/
-    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Gradient hero header - replaces the generic FinanceTopBar, which is
+            // meant for main-app screens (it defaults to showing search/filter/
+            // notification/menu icons that make no sense pre-login).
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        heroGradientVertical(),
+                        RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+                    )
+                    .statusBarsPadding()
+                    .padding(AppSpacing.lg)
+            ) {
+                Column {
+                    IconButton(onClick = { navManager?.navigateBack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(AppSpacing.sm))
+                    Text(
+                        text = "Welcome back",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Login to continue managing your expenses",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f)
+                    )
+                }
+            }
 
-    Scaffold(
-        topBar = {
-            FinanceTopBar(
-                title = "Login to your account",
-                onBackClick = { navManager?.navigateBack() },
-            )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
-    ) { innerPadding ->
-
-        Surface(
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.padding(innerPadding)
-        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(AppSpacing.lg),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
                 if (isEmailLogin) {
                     LabeledTextField(
@@ -84,6 +107,7 @@ fun LoginScreen(
                         },
                         placeholder = "example12345@gmail.com",
                         keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next,
                         isError = email.isNotEmpty() && !isEmailValid,
                         errorText = "Invalid email address",
                         leadingIcon = { Icon(Icons.Default.Mail, contentDescription = null) }
@@ -97,12 +121,14 @@ fun LoginScreen(
                             isPasswordValid = it.length >= 6
                         },
                         placeholder = "Enter your password",
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
                         visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { showPassword = !showPassword }) {
                                 Icon(
                                     imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                    contentDescription = "Toggle password"
+                                    contentDescription = if (showPassword) "Hide password" else "Show password"
                                 )
                             }
                         },
@@ -126,13 +152,13 @@ fun LoginScreen(
                                 checked = isRememberMeChecked,
                                 onCheckedChange = null
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = "Remember me")
+                            Spacer(modifier = Modifier.width(AppSpacing.sm))
+                            Text(text = "Remember me", style = MaterialTheme.typography.bodyMedium)
                         }
                         Text(
                             text = "Forgot password?",
                             color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelLarge,
                             modifier = Modifier.clickable {
                                 navManager?.navigate(ScreenRoutes.ResetPassword.route)
                             }
@@ -165,6 +191,7 @@ fun LoginScreen(
                             },
                             placeholder = "######",
                             keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
                             isError = otp.isNotEmpty() && otp.length < 6,
                             errorText = "Invalid OTP",
                             leadingIcon = { Icon(Icons.Default.Numbers, contentDescription = null) },
@@ -175,29 +202,25 @@ fun LoginScreen(
                 }
 
                 AppButton(
-                    text = "Login",
+                    text = if (!isEmailLogin && !isOtpSent) "Send OTP" else "Login",
                     onClick = {
-                        navManager?.navigateToRoot(ScreenRoutes.Home.route)
                         coroutineScope.launch {
                             if (isEmailLogin) {
-                                if (!isEmailValid || !isPasswordValid) {
+                                if (email.isBlank() || password.isBlank() || !isEmailValid || !isPasswordValid) {
                                     snackBarHostState.showSnackbar("Please fix errors before logging in")
                                     return@launch
                                 }
                                 // TODO: viewModel?.submitEmailLogin(...)
-                            } else {
-                                /*if (!phoneNumber.isPhoneNumber() || otp.length < 6) {
-                                    snackbarHostState.showSnackbar("Please enter valid phone and OTP")
-                                    isOtpSent = false
-                                    return@launch
-                                }else{*/
-//                                    viewModel?.loginWithPhoneNumber(
-//                                        phone = phoneNumber,
-//                                        activity = context as MainActivity
-//                                    )
+                                navManager?.navigateToRoot(ScreenRoutes.Home.route)
+                            } else if (!isOtpSent) {
                                 isOtpSent = true
+                            } else {
+                                if (otp.length < 6) {
+                                    snackBarHostState.showSnackbar("Enter the 6-digit OTP")
+                                    return@launch
+                                }
                                 // TODO: viewModel?.submitPhoneLogin(...)
-//                                }
+                                navManager?.navigateToRoot(ScreenRoutes.Home.route)
                             }
                         }
                     },
@@ -235,6 +258,11 @@ fun LoginScreen(
                 )
             }
         }
+
+        SnackbarHost(
+            hostState = snackBarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

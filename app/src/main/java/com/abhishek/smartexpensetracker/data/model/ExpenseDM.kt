@@ -1,8 +1,5 @@
 package com.abhishek.smartexpensetracker.data.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import java.util.UUID
 import android.net.Uri
 
 // Expense status for business workflow
@@ -22,7 +19,7 @@ enum class UserRole {
 }
 
 data class ExpenseDM(
-    val id: String = UUID.randomUUID().toString(), // unique ID
+    val id: Long = 0L, // matches ExpenseEntity.expenseId; 0 = not yet persisted
     val userId: String = "",                             // who added the expense
     val userName: String? = null,                   // name of the user (useful for Admin view)
     val title: String = "",

@@ -3,27 +3,28 @@ package com.abhishek.smartexpensetracker.ui.screens.splash
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import com.abhishek.smartexpensetracker.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.google.accompanist.pager.*
+import com.abhishek.smartexpensetracker.ui.theme.AppShapes
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
+import com.abhishek.smartexpensetracker.ui.theme.heroGradientSoft
 import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(onFinish: () -> Unit) {
-    val pagerState = rememberPagerState()
-    val scope = rememberCoroutineScope()
-
     val pages = listOf(
         OnboardingPage(
             title = "Track Expenses Easily",
@@ -47,11 +48,14 @@ fun OnboardingScreen(onFinish: () -> Unit) {
         )
     )
 
+    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFFDAE0FB))
-            .padding(16.dp),
+            .background(heroGradientSoft())
+            .padding(AppSpacing.md),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         // Skip Button
@@ -62,50 +66,77 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             TextButton(
                 onClick = onFinish
             ) {
-                Text("Skip", color = Color.DarkGray)
+                Text(
+                    text = "Skip",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
         // Pager
         HorizontalPager(
-            count = pages.size,
             state = pagerState,
             modifier = Modifier.weight(1f)
         ) { page ->
             OnboardingPageUI(page = pages[page])
         }
 
-        // Back + Dots + Next/Finish
+        // Dots indicator
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = AppSpacing.md),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            repeat(pages.size) { index ->
+                val isSelected = pagerState.currentPage == index
+                val dotWidth by animateDpAsState(
+                    targetValue = if (isSelected) 24.dp else 8.dp,
+                    animationSpec = androidx.compose.animation.core.spring(
+                        dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+                        stiffness = androidx.compose.animation.core.Spring.StiffnessMedium
+                    ),
+                    label = "onboardingDotWidth"
+                )
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = AppSpacing.xs / 2)
+                        .height(8.dp)
+                        .width(dotWidth)
+                        .clip(if (isSelected) AppShapes.small else CircleShape)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outlineVariant
+                        )
+                )
+            }
+        }
+
+        // Back + Next/Finish
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (pagerState.currentPage != 0) {
-                Button(
+                OutlinedButton(
                     onClick = {
-                        if (pagerState.currentPage > 0) {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                            }
+                        scope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
                         }
                     },
                     shape = CircleShape
                 ) {
                     Text(
                         text = "Back",
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
+            } else {
+                Spacer(modifier = Modifier.width(1.dp))
             }
-
-            HorizontalPagerIndicator(
-                pagerState = pagerState,
-                activeColor = MaterialTheme.colorScheme.primary,
-                inactiveColor = Color.Gray,
-                indicatorWidth = 10.dp,
-                spacing = 6.dp
-            )
 
             Button(
                 onClick = {
@@ -117,11 +148,15 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                         onFinish()
                     }
                 },
-                shape = CircleShape
+                shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Text(
                     text = if (pagerState.currentPage == pages.lastIndex) "Finish" else "Next",
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
         }
@@ -133,31 +168,42 @@ fun OnboardingPageUI(page: OnboardingPage) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = AppSpacing.lg),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(id = page.image),
-            contentDescription = page.title,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+        Box(
+            modifier = Modifier
+                .size(260.dp)
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = page.image),
+                contentDescription = page.title,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxWidth(0.75f)
+                    .padding(AppSpacing.md)
+            )
+        }
+        Spacer(modifier = Modifier.height(AppSpacing.lg))
         Text(
             text = page.title,
-            fontSize = 22.sp,
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(AppSpacing.sm))
         Text(
             text = page.description,
-            fontSize = 16.sp,
-            color = Color.Gray,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp),
-            lineHeight = 20.sp
+            modifier = Modifier.padding(horizontal = AppSpacing.md)
         )
     }
 }

@@ -3,21 +3,16 @@ package com.abhishek.smartexpensetracker.ui.screens.report
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
@@ -30,17 +25,19 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.abhishek.smartexpensetracker.core.navigation.NavManager
 import com.abhishek.smartexpensetracker.core.navigation.ScreenRoutes
 import com.abhishek.smartexpensetracker.data.model.Expense
 import com.abhishek.smartexpensetracker.data.model.UserRole
+import com.abhishek.smartexpensetracker.ui.components.AnimatedAmountText
 import com.abhishek.smartexpensetracker.ui.components.BaseScaffold
+import com.abhishek.smartexpensetracker.ui.components.GradientCard
 import com.abhishek.smartexpensetracker.ui.screens.expense.ExpenseCategory
+import com.abhishek.smartexpensetracker.ui.theme.AppSpacing
 import kotlin.collections.forEach
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -65,7 +62,7 @@ fun ReportsScreen(
         currentRoute = ScreenRoutes.Reports.route,
         topBar = {
             TopAppBar(
-                title = { Text("Reports & Analytics") },
+                title = { Text("Reports & Analytics", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = { navManager?.navigateBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -87,38 +84,51 @@ fun ReportsScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                /* 🔹 Search & Quick Filter */
+                /* Hero summary - total spend for the selected period */
                 item {
-                    Row(
+                    val totalSpend = uiState.expenses.sumOf { it.amount }
+                    GradientCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(AppSpacing.md)
                     ) {
-                        Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
-                        Spacer(Modifier.width(8.dp))
-                        BasicTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            textStyle = TextStyle(fontSize = 16.sp),
-                            modifier = Modifier
-                                .weight(1f)
-                                .background(
-                                    Color.LightGray.copy(alpha = 0.3f),
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .padding(10.dp),
-                            decorationBox = { innerTextField ->
-                                if (searchQuery.isEmpty()) {
-                                    Text("Search expenses...", color = Color.Gray, fontSize = 14.sp)
-                                }
-                                innerTextField()
-                            }
+                        Text(
+                            "Total ${uiState.selectedPeriod.displayName} Spend",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color.White.copy(alpha = 0.85f)
+                        )
+                        Spacer(Modifier.height(AppSpacing.xs))
+                        AnimatedAmountText(
+                            amount = totalSpend,
+                            style = MaterialTheme.typography.displaySmall,
+                            color = Color.White,
+                            decimals = 0
+                        )
+                        Spacer(Modifier.height(AppSpacing.xs))
+                        Text(
+                            "${uiState.expenses.size} transactions",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.75f)
                         )
                     }
                 }
 
-                /* 🔹 Filters */
+                /* Search & Quick Filter */
+                item {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(AppSpacing.md),
+                        placeholder = { Text("Search expenses...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.small
+                    )
+                }
+
+                /* Filters */
                 item {
                     FiltersSection(
                         isBusinessMode = isBusinessMode,
@@ -130,24 +140,25 @@ fun ReportsScreen(
                     )
                 }
 
-                /* 🔹 Toggle View: Chart / List */
+                /* Toggle View: Chart / List */
                 item {
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(AppSpacing.md))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = AppSpacing.md),
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("View Mode", style = MaterialTheme.typography.titleMedium)
+                        Text("View Mode", style = MaterialTheme.typography.titleLarge)
                         IconButton(onClick = { chartMode = !chartMode }) {
-                            if (chartMode) Icon(Icons.Default.List, "Switch to List")
-                            else Icon(Icons.Default.PieChart, "Switch to Charts")
+                            if (chartMode) Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Switch to List")
+                            else Icon(Icons.Default.PieChart, contentDescription = "Switch to Charts")
                         }
                     }
                 }
 
-                /* 🔹 Charts / Table */
+                /* Charts / Table */
                 if (chartMode) {
                     item {
                         ReportsChartsSection(uiState)
@@ -158,15 +169,15 @@ fun ReportsScreen(
                     }
                 }
 
-                /* 🔹 AI Insights */
+                /* AI Insights */
                 if (uiState.aiInsights.isNotEmpty()) {
                     item {
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(AppSpacing.md))
                         AIInsightsSection(uiState.aiInsights)
                     }
                 }
 
-                item { Spacer(Modifier.height(32.dp)) }
+                item { Spacer(Modifier.height(AppSpacing.xl)) }
             }
         }
     )
@@ -182,27 +193,28 @@ fun ExpenseTableSection(expenses: List<Expense>, searchQuery: String) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(8.dp)
+            .padding(AppSpacing.md),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(AppSpacing.sm + AppSpacing.xs)
         ) {
             filtered.forEach { expense ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp)
+                        .padding(AppSpacing.sm)
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(expense.title, style = MaterialTheme.typography.titleMedium)
-                        Text("₹${expense.amount}", style = MaterialTheme.typography.bodyLarge)
+                        Text("₹${expense.amount}", style = MaterialTheme.typography.titleMedium)
                     }
 
                     Row(
@@ -212,21 +224,25 @@ fun ExpenseTableSection(expenses: List<Expense>, searchQuery: String) {
                         Text(
                             expense.category,
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "${expense.timestamp}", // ✅ fixed: don’t multiply timestamp
+                            text = "${expense.timestamp}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
                     Text(
                         "By: ${expense.title}",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.DarkGray)
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Divider(modifier = Modifier.padding(vertical = 6.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = AppSpacing.xs + 2.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
                 }
             }
         }
@@ -239,21 +255,29 @@ fun ExpenseTableSection(expenses: List<Expense>, searchQuery: String) {
 fun AIInsightsSection(aiInsights: List<String>) {
     Column(modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 16.dp)) {
-        Text("AI Insights", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
+        .padding(horizontal = AppSpacing.md)) {
+        Text("AI Insights", style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(AppSpacing.sm))
         aiInsights.forEach { insight ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .padding(vertical = AppSpacing.xs),
+                shape = MaterialTheme.shapes.small,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
-                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.PieChart, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(8.dp))
-                    Text(insight, style = MaterialTheme.typography.bodyMedium)
+                Row(modifier = Modifier.padding(AppSpacing.sm + AppSpacing.xs), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.PieChart,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Spacer(Modifier.width(AppSpacing.sm))
+                    Text(
+                        insight,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 }
             }
         }
@@ -274,15 +298,16 @@ fun FiltersSection(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(6.dp)
+            .padding(horizontal = AppSpacing.md),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Filters", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(12.dp))
+        Column(modifier = Modifier.padding(AppSpacing.md)) {
+            Text("Filters", style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm + AppSpacing.xs)) {
                 DropdownMenuBox(
                     items = ReportPeriod.entries.map { it.displayName },
                     selectedItem = selectedPeriod.displayName,
@@ -329,8 +354,9 @@ fun DropdownMenuBox(
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
+            shape = MaterialTheme.shapes.small,
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth()
         )
         ExposedDropdownMenu(
@@ -357,19 +383,20 @@ fun DropdownMenuBox(
 fun ReportsChartsSection(uiState: ReportsUiState) {
     Column(modifier = Modifier.fillMaxWidth()) {
 
-        // 📊 Spending Trends (Bar Chart with Scroll)
+        // Spending Trends (Bar Chart with Scroll)
         Text(
             "Spending Trends",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(start = AppSpacing.md, bottom = AppSpacing.sm)
         )
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(260.dp)
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(8.dp)
+                .padding(horizontal = AppSpacing.md),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
             val barData = mapOf(
                 "Jan" to 2000f, "Feb" to 3500f, "Mar" to 1800f,
@@ -380,7 +407,7 @@ fun ReportsChartsSection(uiState: ReportsUiState) {
             Row(
                 modifier = Modifier
                     .horizontalScroll(rememberScrollState())
-                    .padding(12.dp)
+                    .padding(AppSpacing.sm + AppSpacing.xs)
             ) {
                 BarChartWithAxis(
                     data = barData,
@@ -391,20 +418,21 @@ fun ReportsChartsSection(uiState: ReportsUiState) {
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(AppSpacing.md))
 
-        // 🥧 Category Breakdown (Pie Chart with List)
+        // Category Breakdown (Pie Chart with List)
         Text(
             "Category Breakdown",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(start = AppSpacing.md, bottom = AppSpacing.sm)
         )
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(8.dp)
+                .padding(horizontal = AppSpacing.md),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
             val categoryData = mapOf(
                 "Food" to 40f,
@@ -416,7 +444,7 @@ fun ReportsChartsSection(uiState: ReportsUiState) {
 
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(AppSpacing.md)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -424,19 +452,19 @@ fun ReportsChartsSection(uiState: ReportsUiState) {
                     data = categoryData,
                     modifier = Modifier
                         .size(200.dp)
-                        .padding(8.dp)
+                        .padding(AppSpacing.sm)
                 )
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
-                // Sorted List High → Low
+                // Sorted List High -> Low
                 categoryData.entries
                     .sortedByDescending { it.value }
                     .forEach { (category, value) ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                                .padding(vertical = AppSpacing.xs),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(category, style = MaterialTheme.typography.bodyMedium)
@@ -446,21 +474,22 @@ fun ReportsChartsSection(uiState: ReportsUiState) {
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(AppSpacing.md))
 
-        // 📈 Spending Over Time (Line Chart with Axis)
+        // Spending Over Time (Line Chart with Axis)
         Text(
             "Spending Over Time",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(start = AppSpacing.md, bottom = AppSpacing.sm)
         )
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(260.dp)
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(8.dp)
+                .padding(horizontal = AppSpacing.md),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
             val lineData = listOf(500f, 1200f, 800f, 2000f, 1800f, 2200f)
 
@@ -469,7 +498,7 @@ fun ReportsChartsSection(uiState: ReportsUiState) {
                 xLabels = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun"),
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(AppSpacing.md)
             )
         }
     }
@@ -478,19 +507,24 @@ fun ReportsChartsSection(uiState: ReportsUiState) {
 @Composable
 fun BarChartWithAxis(data: Map<String, Float>, modifier: Modifier = Modifier) {
     val maxY = (data.values.maxOrNull() ?: 0f) * 1.2f
+    val barColor = MaterialTheme.colorScheme.primary
+    val axisColor = MaterialTheme.colorScheme.outline
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
+    val valueColor = MaterialTheme.colorScheme.onSurface.toArgb()
+
     Canvas(modifier = modifier) {
         val barWidth = size.width / (data.size * 2)
         val space = barWidth
         val xStep = (barWidth + space)
 
         // Y axis
-        drawLine(Color.Gray, start = Offset(80f, 0f), end = Offset(80f, size.height))
+        drawLine(axisColor, start = Offset(80f, 0f), end = Offset(80f, size.height))
 
         data.entries.forEachIndexed { index, entry ->
             val barHeight = (entry.value / maxY) * size.height
             val x = 100f + index * xStep
             drawRect(
-                color = Color(0xFF2196F3),
+                color = barColor,
                 topLeft = Offset(x, size.height - barHeight),
                 size = Size(barWidth, barHeight)
             )
@@ -498,20 +532,20 @@ fun BarChartWithAxis(data: Map<String, Float>, modifier: Modifier = Modifier) {
                 entry.key,
                 x,
                 size.height - 10,
-                android.graphics.Paint().apply {
-                    color = android.graphics.Color.BLACK
+                Paint().apply {
+                    color = labelColor
                     textSize = 28f
-                    textAlign = android.graphics.Paint.Align.CENTER
+                    textAlign = Paint.Align.CENTER
                 }
             )
             drawContext.canvas.nativeCanvas.drawText(
                 entry.value.toInt().toString(),
                 x,
                 size.height - barHeight - 10,
-                android.graphics.Paint().apply {
-                    color = android.graphics.Color.DKGRAY
+                Paint().apply {
+                    color = valueColor
                     textSize = 26f
-                    textAlign = android.graphics.Paint.Align.CENTER
+                    textAlign = Paint.Align.CENTER
                 }
             )
         }
@@ -525,15 +559,11 @@ fun PieChartWithHover(
     val total = data.values.sum()
     var selectedSlice by remember { mutableStateOf<String?>(null) }
 
-    // Auto generate distinct colors based on number of slices
-    val colors = remember(data.size) {
-        List(data.size) { index ->
-            Color.hsv(
-                hue = (index * (360f / data.size)) % 360f,
-                saturation = 0.7f,
-                value = 0.9f
-            )
-        }
+    // Distinct colors for each slice, drawn from the shared theme-derived chart palette
+    // instead of arbitrary hsv-generated colors.
+    val palette = chartColorPalette()
+    val colors = remember(data.size, palette) {
+        List(data.size) { index -> palette[index % palette.size] }
     }
 
     Box(
@@ -553,7 +583,7 @@ fun PieChartWithHover(
                     if (selectedSlice == entry.key) colors[index].copy(alpha = 0.6f)
                     else colors[index]
 
-                // ✅ Draw only the slice (no inner circle)
+                // Draw only the slice (no inner circle)
                 drawArc(
                     color = sliceColor,
                     startAngle = startAngle,
@@ -565,7 +595,7 @@ fun PieChartWithHover(
             }
         }
 
-        // ✅ Show hover/selection details in center
+        // Show hover/selection details in center
         selectedSlice?.let {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(it, style = MaterialTheme.typography.bodyMedium)
@@ -581,10 +611,14 @@ fun PieChartWithHover(
 
 
 
-
 @Composable
 fun LineChartWithAxis(data: List<Float>, xLabels: List<String>, modifier: Modifier = Modifier) {
     val maxY = (data.maxOrNull() ?: 0f) * 1.2f
+    val axisColor = MaterialTheme.colorScheme.outline
+    val lineColor = MaterialTheme.colorScheme.tertiary
+    val valueColor = MaterialTheme.colorScheme.onSurface.toArgb()
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
+
     Canvas(modifier = modifier) {
         val xStep = size.width / (data.size - 1)
         val points = data.mapIndexed { i, value ->
@@ -592,34 +626,34 @@ fun LineChartWithAxis(data: List<Float>, xLabels: List<String>, modifier: Modifi
         }
 
         // Y Axis
-        drawLine(Color.Gray, start = Offset(80f, 0f), end = Offset(80f, size.height))
+        drawLine(axisColor, start = Offset(80f, 0f), end = Offset(80f, size.height))
 
         // Line
         for (i in 0 until points.size - 1) {
-            drawLine(Color(0xFFFF5722), points[i], points[i + 1], strokeWidth = 6f)
+            drawLine(lineColor, points[i], points[i + 1], strokeWidth = 6f)
         }
 
         // Points + labels
         points.forEachIndexed { i, point ->
-            drawCircle(Color(0xFFFF5722), radius = 10f, center = point)
+            drawCircle(lineColor, radius = 10f, center = point)
             drawContext.canvas.nativeCanvas.drawText(
                 data[i].toInt().toString(),
                 point.x,
                 point.y - 15,
-                android.graphics.Paint().apply {
-                    color = android.graphics.Color.BLACK
+                Paint().apply {
+                    color = valueColor
                     textSize = 28f
-                    textAlign = android.graphics.Paint.Align.CENTER
+                    textAlign = Paint.Align.CENTER
                 }
             )
             drawContext.canvas.nativeCanvas.drawText(
                 xLabels[i],
                 point.x,
                 size.height - 10,
-                android.graphics.Paint().apply {
-                    color = android.graphics.Color.DKGRAY
+                Paint().apply {
+                    color = labelColor
                     textSize = 26f
-                    textAlign = android.graphics.Paint.Align.CENTER
+                    textAlign = Paint.Align.CENTER
                 }
             )
         }
@@ -627,27 +661,6 @@ fun LineChartWithAxis(data: List<Float>, xLabels: List<String>, modifier: Modifi
 }
 
 
-
-/* ---------------- AI Insights ---------------- */
-
-/*@Composable
-fun AIInsightsSection(aiInsights: List<String>) {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        Text("AI Insights", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
-        aiInsights.forEach { insight ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-            ) {
-                Text(insight, modifier = Modifier.padding(12.dp))
-            }
-        }
-    }
-}*/
 
 /* ---------------- ViewModel ---------------- */
 
@@ -677,6 +690,9 @@ fun DonutChart(
     selectedCategory: ExpenseCategory?,
     showPercentage: Boolean
 ) {
+    val holeColor = MaterialTheme.colorScheme.surface
+    val labelColor = MaterialTheme.colorScheme.onSurface.toArgb()
+
     Canvas(
         modifier = Modifier
             .size(260.dp)
@@ -738,7 +754,7 @@ fun DonutChart(
                         textX.toFloat(),
                         textY.toFloat(),
                         Paint().apply {
-                            color = android.graphics.Color.BLACK
+                            color = labelColor
                             textSize = 36f
                             textAlign = Paint.Align.CENTER
                             isFakeBoldText = true
@@ -751,7 +767,7 @@ fun DonutChart(
 
         // Donut hole
         drawCircle(
-            color = Color.White,
+            color = holeColor,
             radius = chartSize / 7f,
             center = Offset(chartSize / 2f, chartSize / 2f)
         )

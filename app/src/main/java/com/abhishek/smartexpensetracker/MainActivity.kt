@@ -13,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.abhishek.smartexpensetracker.core.datastore.BusinessMode
+
 import com.abhishek.smartexpensetracker.core.datastore.ThemeType
 import com.abhishek.smartexpensetracker.core.datastore.AppPreferencesRepository
 import com.abhishek.smartexpensetracker.core.datastore.PremiumType
@@ -37,16 +38,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Collect theme + business mode directly
             val themeMode by preferencesRepository.themeMode.collectAsState(initial = ThemeType.LIGHT)
-            val businessMode by preferencesRepository.businessMode.collectAsState(initial = false)
+            val businessMode by preferencesRepository.businessMode.collectAsState(initial = BusinessMode.Personal)
             val premiumType by preferencesRepository.premiumTypeFlow.collectAsState(initial = PremiumType.BASIC)
 
-            val appFlavor = when(businessMode){
-                businessMode -> when(premiumType){
+            val appFlavor = if (businessMode is BusinessMode.Business) {
+                when (premiumType) {
                     PremiumType.BASIC -> AppFlavor.BUSINESS_BASIC
                     PremiumType.MONTHLY -> AppFlavor.BUSINESS_PREMIUM
                     PremiumType.YEARLY -> AppFlavor.BUSINESS_PREMIUM
                 }
-                else -> when(premiumType){
+            } else {
+                when (premiumType) {
                     PremiumType.BASIC -> AppFlavor.PERSONAL_BASIC
                     PremiumType.MONTHLY -> AppFlavor.PERSONAL_PREMIUM
                     PremiumType.YEARLY -> AppFlavor.PERSONAL_PREMIUM
