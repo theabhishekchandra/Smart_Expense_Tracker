@@ -1,9 +1,11 @@
 package com.abhishek.spendly.ui.screens.staff
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material3.*
@@ -14,17 +16,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.abhishek.spendly.core.navigation.NavManager
+import com.abhishek.spendly.core.navigation.ScreenRoutes
 import com.abhishek.spendly.ui.components.AnimatedAmountText
 import com.abhishek.spendly.ui.components.GlassStatTile
 import com.abhishek.spendly.ui.components.GradientCard
 import com.abhishek.spendly.ui.theme.AppShapes
 import com.abhishek.spendly.ui.theme.AppSpacing
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StaffProfileScreen(staff: Staff, pendingApprovals: Int = 0) {
+fun StaffProfileScreen(staff: Staff, pendingApprovals: Int = 0, navManager: NavManager? = null) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(staff.name) },
+                navigationIcon = {
+                    if (navManager != null) {
+                        IconButton(onClick = { navManager.navigateBack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                }
+            )
+        }
+    ) { padding ->
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(padding)
             .padding(AppSpacing.md)
     ) {
         // --- Hero: avatar / name / role + total expenses, in the same GradientCard
@@ -112,7 +132,10 @@ fun StaffProfileScreen(staff: Staff, pendingApprovals: Int = 0) {
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
-                modifier = Modifier.weight(1f).height(80.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .height(80.dp)
+                    .clickable { navManager?.navigate(ScreenRoutes.AddExpense.route) }
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -139,7 +162,10 @@ fun StaffProfileScreen(staff: Staff, pendingApprovals: Int = 0) {
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer
                 ),
-                modifier = Modifier.weight(1f).height(80.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .height(80.dp)
+                    .clickable { navManager?.navigate(ScreenRoutes.QuickView.route) }
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -161,6 +187,7 @@ fun StaffProfileScreen(staff: Staff, pendingApprovals: Int = 0) {
                 }
             }
         }
+    }
     }
 }
 

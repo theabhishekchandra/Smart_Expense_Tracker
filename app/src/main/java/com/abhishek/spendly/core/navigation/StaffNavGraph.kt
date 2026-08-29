@@ -1,17 +1,18 @@
 package com.abhishek.spendly.core.navigation
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import com.abhishek.spendly.ui.screens.report.PreviewReportsScreen
 import com.abhishek.spendly.ui.screens.staff.PendingApprovalsScreen
 import com.abhishek.spendly.ui.screens.staff.ProcessedExpensesScreen
 import com.abhishek.spendly.ui.screens.staff.QuickViewScreen
-import com.abhishek.spendly.ui.screens.staff.Role
-import com.abhishek.spendly.ui.screens.staff.Staff
 import com.abhishek.spendly.ui.screens.staff.StaffDashboardScreen
 import com.abhishek.spendly.ui.screens.staff.StaffManagementScreen
 import com.abhishek.spendly.ui.screens.staff.StaffProfileScreen
+import com.abhishek.spendly.ui.screens.staff.StaffReportsScreen
+import com.abhishek.spendly.ui.screens.staff.sampleContributions
+import com.abhishek.spendly.ui.screens.staff.sampleStaffList
 
 fun NavGraphBuilder.staffNavGraph(navManager: NavManager) {
     navigation(
@@ -32,31 +33,32 @@ fun NavGraphBuilder.staffNavGraph(navManager: NavManager) {
         }
         composable(ScreenRoutes.StaffReports.route) {
             // Staff Reports Screen
-
+            StaffReportsScreen(navManager = navManager)
         }
 
-        composable(ScreenRoutes.StaffProfile.route){
-            StaffProfileScreen(
-                Staff(
-                    id = 1,
-                    staffId = "Staff002",
-                    name = "John Doe",
-                    email = "john@example.com",
-                    totalExpense = 1200.0,
-                    role = Role.EntryOnly
-                )
-            )
+        composable(
+            route = ScreenRoutes.StaffProfile.route,
+            arguments = RoutesConst.STAFF_DETAIL_ARGUMENT
+        ) { navBackStackEntry ->
+            val staffId = navBackStackEntry.arguments?.getString(RoutesConst.STAFF_ID)?.toIntOrNull()
+            val staff = sampleStaffList.find { it.id == staffId }
+            if (staff != null) {
+                StaffProfileScreen(staff = staff, navManager = navManager)
+            } else {
+                LaunchedEffect(Unit) { navManager.navigateBack() }
+            }
         }
 
-        composable(ScreenRoutes.QuickView.route){
+        composable(ScreenRoutes.QuickView.route) {
             QuickViewScreen(
-                listOf(),
-                false
+                contributions = sampleContributions,
+                isAdmin = false,
+                navManager = navManager
             )
         }
 
-        composable(ScreenRoutes.ProcessedExpense.route){
-            ProcessedExpensesScreen()
+        composable(ScreenRoutes.ProcessedExpense.route) {
+            ProcessedExpensesScreen(navManager = navManager)
         }
     }
 }

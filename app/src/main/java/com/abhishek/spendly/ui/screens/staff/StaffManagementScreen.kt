@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GroupOff
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.tooling.preview.Preview
 import com.abhishek.spendly.core.navigation.NavManager
+import com.abhishek.spendly.core.navigation.ScreenRoutes
 import com.abhishek.spendly.ui.theme.AppShapes
 import com.abhishek.spendly.ui.theme.AppSpacing
 import com.abhishek.spendly.ui.theme.RoleAdmin
@@ -94,6 +96,9 @@ fun StaffManagementScreen(navManager: NavManager? = null) {
                     }
                 },
                 actions = {
+                    IconButton(onClick = { navManager?.navigate(ScreenRoutes.StaffReports.route) }) {
+                        Icon(Icons.Default.Assessment, contentDescription = "Staff Reports")
+                    }
                     IconButton(onClick = { showAddDialog = true }) {
                         Icon(Icons.Default.Add, contentDescription = "Add Staff")
                     }
@@ -112,7 +117,11 @@ fun StaffManagementScreen(navManager: NavManager? = null) {
                     verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     items(sampleStaffList, key = { it.id }) { staff ->
-                        ModernStaffCard(staff, onEditClick = { staffBeingEdited = staff })
+                        ModernStaffCard(
+                            staff,
+                            onEditClick = { staffBeingEdited = staff },
+                            onProfileClick = { navManager?.navigate(ScreenRoutes.StaffProfile.passStaffId(staff.id)) }
+                        )
                     }
                 }
             }
@@ -161,7 +170,7 @@ private fun EmptyStaffState() {
 
 // --- Staff Card ---
 @Composable
-fun ModernStaffCard(staff: Staff, onEditClick: () -> Unit = {}) {
+fun ModernStaffCard(staff: Staff, onEditClick: () -> Unit = {}, onProfileClick: () -> Unit = {}) {
     var expandedDropdown by remember { mutableStateOf(false) }
 
     Card(
@@ -170,6 +179,7 @@ fun ModernStaffCard(staff: Staff, onEditClick: () -> Unit = {}) {
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onProfileClick)
     ) {
         Row(
             modifier = Modifier

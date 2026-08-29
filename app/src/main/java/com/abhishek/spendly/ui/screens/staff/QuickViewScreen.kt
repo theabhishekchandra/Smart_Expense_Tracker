@@ -1,12 +1,12 @@
 package com.abhishek.spendly.ui.screens.staff
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.abhishek.spendly.core.navigation.NavManager
 import com.abhishek.spendly.ui.theme.AppShapes
 import com.abhishek.spendly.ui.theme.AppSpacing
 import com.abhishek.spendly.ui.theme.DangerColor
@@ -76,20 +77,28 @@ fun StatusBadge(status: Status, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickViewScreen(
     contributions: List<ExpenseContribution>,
-    isAdmin: Boolean = true
+    isAdmin: Boolean = true,
+    navManager: NavManager? = null
 ) {
-    Column(modifier = Modifier.fillMaxSize().padding(AppSpacing.md)) {
-        // --- Header ---
-        Text(
-            text = if (isAdmin) "Pending Approvals" else "Your Contributions",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(AppSpacing.sm))
-
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(if (isAdmin) "Pending Approvals" else "Your Contributions") },
+                navigationIcon = {
+                    if (navManager != null) {
+                        IconButton(onClick = { navManager.navigateBack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                }
+            )
+        }
+    ) { padding ->
+    Column(modifier = Modifier.fillMaxSize().padding(padding).padding(AppSpacing.md)) {
         // --- Summary Card ---
         Card(
             shape = AppShapes.medium,
@@ -133,6 +142,7 @@ fun QuickViewScreen(
             }
         }
     }
+    }
 }
 
 @Composable
@@ -161,9 +171,7 @@ fun ContributionCard(contribution: ExpenseContribution) {
         shape = AppShapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { /* Navigate to details */ }
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(AppSpacing.md)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

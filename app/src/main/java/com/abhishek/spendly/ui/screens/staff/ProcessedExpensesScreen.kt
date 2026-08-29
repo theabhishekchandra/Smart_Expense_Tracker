@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FilterAltOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,23 +13,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.abhishek.spendly.core.navigation.NavManager
 import com.abhishek.spendly.ui.theme.AppShapes
 import com.abhishek.spendly.ui.theme.AppSpacing
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProcessedExpensesScreen() {
+fun ProcessedExpensesScreen(navManager: NavManager? = null) {
     var selectedStaff by remember { mutableStateOf<String?>(null) }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var filteredExpenses by remember { mutableStateOf(samplePendingExpenses.filter { it.status != Status.Pending }) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(AppSpacing.md)) {
-        Text(
-            text = "Processed Expenses",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(AppSpacing.md))
-
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Processed Expenses") },
+                navigationIcon = {
+                    if (navManager != null) {
+                        IconButton(onClick = { navManager.navigateBack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                }
+            )
+        }
+    ) { padding ->
+    Column(modifier = Modifier.fillMaxSize().padding(padding).padding(AppSpacing.md)) {
         // --- Filter Row ---
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             DropdownFilter("Staff", listOf("All") + samplePendingExpenses.map { it.staffName }.distinct(), selectedStaff) {
@@ -62,6 +72,7 @@ fun ProcessedExpensesScreen() {
                 }
             }
         }
+    }
     }
 }
 

@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.abhishek.spendly.core.navigation.NavManager
+import com.abhishek.spendly.core.navigation.ScreenRoutes
 import com.abhishek.spendly.ui.components.FinanceTopBar
 import com.abhishek.spendly.ui.theme.AppShapes
 import com.abhishek.spendly.ui.theme.AppSpacing
@@ -66,6 +67,11 @@ fun PendingApprovalsScreen(navManager: NavManager? = null) {
                 .padding(padding)
                 .padding(AppSpacing.md)
         ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = { navManager?.navigate(ScreenRoutes.ProcessedExpense.route) }) {
+                    Text("View Processed")
+                }
+            }
             if (samplePendingExpenses.isEmpty()) {
                 EmptyApprovalsState()
             } else {

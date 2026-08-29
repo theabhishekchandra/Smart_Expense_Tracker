@@ -63,7 +63,9 @@ sealed class ScreenRoutes(val route: String) {
     object StaffDashboard : ScreenRoutes(RoutesConst.STAFF_DASHBOARD_SCREEN)
     object Approval : ScreenRoutes(RoutesConst.APPROVAL_SCREEN)
     object StaffReports : ScreenRoutes(RoutesConst.STAFF_REPORTS_SCREEN)
-    object StaffProfile : ScreenRoutes(RoutesConst.STAFF_PROFILE_SCREEN)
+    object StaffProfile : ScreenRoutes("${RoutesConst.STAFF_PROFILE_SCREEN}/{${RoutesConst.STAFF_ID}}") {
+        fun passStaffId(staffId: Int) = "${RoutesConst.STAFF_PROFILE_SCREEN}/$staffId"
+    }
     object QuickView : ScreenRoutes(RoutesConst.QUICK_VIEW_SCREEN)
     object ProcessedExpense : ScreenRoutes(RoutesConst.PROCESSED_EXPENSE_SCREEN)
 
