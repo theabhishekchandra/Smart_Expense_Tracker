@@ -78,6 +78,7 @@ val sampleStaffList = mutableStateListOf(
 @Composable
 fun StaffManagementScreen() {
     var showAddDialog by remember { mutableStateOf(false) }
+    var staffBeingEdited by remember { mutableStateOf<Staff?>(null) }
 
     Scaffold(
         topBar = {
@@ -102,7 +103,7 @@ fun StaffManagementScreen() {
                     verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     items(sampleStaffList, key = { it.id }) { staff ->
-                        ModernStaffCard(staff)
+                        ModernStaffCard(staff, onEditClick = { staffBeingEdited = staff })
                     }
                 }
             }
@@ -110,15 +111,19 @@ fun StaffManagementScreen() {
             if (showAddDialog) {
                 StaffDialog(
                     onDismiss = { showAddDialog = false },
-                    staffToEdit = Staff(
-                        id = 0,
-                        staffId = "Staff32",
-                        name = "Abhishek Chandra",
-                        email = "ac927920@gmail.com",
-                        totalExpense = 14342.0,
-                        role = Role.EntryOnly
-                    ),
-                    onSave = { }
+                    staffToEdit = null,
+                    onSave = { newStaff -> sampleStaffList.add(newStaff) }
+                )
+            }
+
+            staffBeingEdited?.let { staff ->
+                StaffDialog(
+                    onDismiss = { staffBeingEdited = null },
+                    staffToEdit = staff,
+                    onSave = { updated ->
+                        val index = sampleStaffList.indexOfFirst { it.id == updated.id }
+                        if (index != -1) sampleStaffList[index] = updated
+                    }
                 )
             }
         }
@@ -147,7 +152,7 @@ private fun EmptyStaffState() {
 
 // --- Staff Card ---
 @Composable
-fun ModernStaffCard(staff: Staff) {
+fun ModernStaffCard(staff: Staff, onEditClick: () -> Unit = {}) {
     var expandedDropdown by remember { mutableStateOf(false) }
 
     Card(
@@ -238,7 +243,7 @@ fun ModernStaffCard(staff: Staff) {
 
             // --- Edit / Delete Icons ---
             Column(horizontalAlignment = Alignment.End) {
-                IconButton(onClick = { /* TODO: Edit functionality */ }) {
+                IconButton(onClick = onEditClick) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit ${staff.name}")
                 }
                 IconButton(onClick = { sampleStaffList.remove(staff) }) {

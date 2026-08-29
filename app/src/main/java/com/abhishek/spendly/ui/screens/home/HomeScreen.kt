@@ -46,6 +46,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -106,6 +108,7 @@ fun HomeScreen(
     val isBusiness by viewModel.isBusiness.collectAsState()
     val  borrowRecord by viewModel.borrowRecord.collectAsState()
     var expanded by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
 
     val ctx = LocalContext.current
 
@@ -130,11 +133,23 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* language */ }) {
+                    IconButton(onClick = { navManager?.navigate(ScreenRoutes.Settings.route) }) {
                         Icon(Icons.Outlined.Language, contentDescription = "Change language")
                     }
-                    IconButton(onClick = { /* menu */ }) {
-                        Icon(Icons.Outlined.MoreVert, contentDescription = "More options")
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Outlined.MoreVert, contentDescription = "More options")
+                        }
+                        DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Refresh") },
+                                onClick = { menuExpanded = false; viewModel.refreshHome() }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Settings") },
+                                onClick = { menuExpanded = false; navManager?.navigate(ScreenRoutes.Settings.route) }
+                            )
+                        }
                     }
                 }
             )
@@ -163,17 +178,19 @@ fun HomeScreen(
                                 icon = Icons.Default.Person,
                                 text = "Add Expense",
                                 onClick = { expanded = false
-                                    navManager?.navigate(ScreenRoutes.AddExpense.route)/* Handle add person */ }
+                                    navManager?.navigate(ScreenRoutes.AddExpense.route) }
                             )
                             FabMenuItem(
                                 icon = Icons.Default.Money,
                                 text = "Add Income",
-                                onClick = { expanded = false /* Handle add transaction */ }
+                                onClick = { expanded = false
+                                    Toast.makeText(ctx, "Coming Soon...", Toast.LENGTH_SHORT).show() }
                             )
                             FabMenuItem(
                                 icon = Icons.Default.ShoppingCart,
                                 text = "Add Lender",
-                                onClick = { expanded = false /* Handle add expense */ }
+                                onClick = { expanded = false
+                                    navManager?.navigate(ScreenRoutes.AddLender.route) }
                             )
                         }
                     } else {
@@ -185,17 +202,19 @@ fun HomeScreen(
                                 icon = Icons.Default.Person,
                                 text = "Add Expense",
                                 onClick = { expanded = false
-                                navManager?.navigate(ScreenRoutes.AddExpense.route)/* Handle add person */ }
+                                navManager?.navigate(ScreenRoutes.AddExpense.route) }
                             )
                             FabMenuItem(
                                 icon = Icons.Default.Money,
                                 text = "Add Sale",
-                                onClick = { expanded = false /* Handle add transaction */ }
+                                onClick = { expanded = false
+                                    Toast.makeText(ctx, "Coming Soon...", Toast.LENGTH_SHORT).show() }
                             )
                             FabMenuItem(
                                 icon = Icons.Default.ShoppingCart,
                                 text = "Add Lender",
-                                onClick = { expanded = false /* Handle add expense */ }
+                                onClick = { expanded = false
+                                    navManager?.navigate(ScreenRoutes.AddLender.route) }
                             )
                         }
                     }
@@ -237,10 +256,24 @@ fun HomeScreen(
                         item { TodaySummaryCard(currency!!, s.totalExpense) }
                         item { IncomeVsExpenseCard(currency!!, s.monthlyExpense, s.monthlyIncome) }
                         if (s.weeklyTrend.isNotEmpty()) item { WeeklyTrendCard(s.weeklyTrend, currency) }
-                        if (s.approvalRecordList.isNotEmpty()) item { PendingApprovalsCard(s.approvalRecordList, currency) }
+                        if (s.approvalRecordList.isNotEmpty()) item {
+                            PendingApprovalsCard(
+                                items = s.approvalRecordList,
+                                currency = currency,
+                                onViewAll = { navManager?.navigate(ScreenRoutes.Approval.route) },
+                                onApprove = { item -> viewModel.approveApproval(item.id) },
+                                onReject = { item -> viewModel.rejectApproval(item.id) }
+                            )
+                        }
                         if (s.staffSpendingList.isNotEmpty()) item { StaffLeaderboardCard(s.staffSpendingList, currency) }
                         if (s.staffSpendingList.isNotEmpty()) item { StaffPerformanceCard(s.staffSpendingList, currency!!) }
-                        item { OutstandingDuesCard(borrowRecord,currency!!) }
+                        item {
+                            OutstandingDuesCard(
+                                dues = borrowRecord,
+                                currency = currency!!,
+                                onViewAll = { navManager?.navigate(ScreenRoutes.LenderList.route) }
+                            )
+                        }
                     }
                     is HomeUiState.PersonalDashboard -> {
                         val s = state as HomeUiState.PersonalDashboard
@@ -553,6 +586,9 @@ fun AiFeedbackCard(
 private fun PendingApprovalsCard(
     items: List<ApprovalRecord>,
     currency: Currency?,
+    onViewAll: () -> Unit = {},
+    onApprove: (ApprovalRecord) -> Unit = {},
+    onReject: (ApprovalRecord) -> Unit = {},
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -573,7 +609,7 @@ private fun PendingApprovalsCard(
                     "Pending Approvals",
                     style = MaterialTheme.typography.titleMedium
                 )
-                TextButton(onClick = {  }) {
+                TextButton(onClick = onViewAll) {
                     Text("View all", style = MaterialTheme.typography.labelLarge)
                 }
             }
@@ -602,7 +638,7 @@ private fun PendingApprovalsCard(
                     // Right Side (Actions)
                     Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
                         IconButton(
-                            onClick = {  },
+                            onClick = { onReject(item) },
                             modifier = Modifier
                                 .size(40.dp)
                                 .background(
@@ -617,7 +653,7 @@ private fun PendingApprovalsCard(
                             )
                         }
                         IconButton(
-                            onClick = {  },
+                            onClick = { onApprove(item) },
                             modifier = Modifier
                                 .size(40.dp)
                                 .background(
@@ -823,7 +859,8 @@ private fun TodaySalesExpenseCard(
 @Composable
 private fun OutstandingDuesCard(
     dues: List<BorrowerRecord>,
-    currency: Currency
+    currency: Currency,
+    onViewAll: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -861,10 +898,8 @@ private fun OutstandingDuesCard(
                     }
                     HorizontalDivider()
                 }
-                if (dues.size > 5) {
-                    TextButton(onClick = { /* nav to full dues list */ }) {
-                        Text("View All", style = MaterialTheme.typography.labelLarge)
-                    }
+                TextButton(onClick = onViewAll) {
+                    Text("View All", style = MaterialTheme.typography.labelLarge)
                 }
             }
         }

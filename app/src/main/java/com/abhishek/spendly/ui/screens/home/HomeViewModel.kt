@@ -352,4 +352,20 @@ class HomeViewModel @Inject constructor(
     fun refreshHome() {
         loadInitialData()
     }
+
+    fun approveApproval(id: String) {
+        _uiState.update { state ->
+            if (state is HomeUiState.BusinessDashboard) {
+                state.copy(approvalRecordList = state.approvalRecordList.filterNot { it.id == id })
+            } else state
+        }
+    }
+
+    fun rejectApproval(id: String) {
+        _uiState.update { state ->
+            if (state is HomeUiState.BusinessDashboard) {
+                state.copy(approvalRecordList = state.approvalRecordList.filterNot { it.id == id })
+            } else state
+        }
+    }
 }

@@ -1,5 +1,7 @@
 package com.abhishek.spendly.ui.screens.setting
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
@@ -177,23 +180,38 @@ fun SettingsScreen(
                 SettingsRowDivider()
                 SettingsItem(Icons.Default.Email, "Email Support",
                     "support@smartexpense.com",{
-                        // TODO: Implement Email Support.
-                        showToast("Coming Soon...")})
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:support@smartexpense.com")
+                            putExtra(Intent.EXTRA_SUBJECT, "Spendly Support Request")
+                        }
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        } else {
+                            showToast("No email app found")
+                        }
+                    })
+                SettingsRowDivider()
+                SettingsItem(Icons.AutoMirrored.Filled.HelpOutline, "FAQ",
+                    "Frequently asked questions",{ navManager?.navigate(ScreenRoutes.FAQ.route) })
             }
 
             // About
             SettingsSection("About") {
                 SettingsItem(Icons.Default.PrivacyTip, "Privacy & Terms", "Read our policies",{
-                    //TODO: Implement privacy & terms
-                    showToast("Coming Soon...")})
+                    navManager?.navigate(ScreenRoutes.PrivacyPolicy.route)
+                })
                 SettingsRowDivider()
                 SettingsItem(Icons.Default.Info, "About App", "Version 1.0.0",{
-                    // TODO: Implement about app
-                    showToast("Coming Soon...")})
+                    navManager?.navigate(ScreenRoutes.AboutUs.route)
+                })
                 SettingsRowDivider()
                 SettingsItem(Icons.Default.Share, "Share App", "Invite your friends",{
-                    // TODO: Implement share app
-                    showToast("Coming Soon...")})
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, "Check out Spendly — a smart personal & business expense tracking app!")
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, "Share Spendly via"))
+                })
             }
 
             Spacer(modifier = Modifier.height(AppSpacing.sm))

@@ -176,10 +176,7 @@ fun SwipeableLenderItem(
                     tint = MaterialTheme.colorScheme.error
                 )
             }
-            IconButton(onClick = {
-                onEdit(item)
-                Toast.makeText(context, "Edit ${item.name}", Toast.LENGTH_SHORT).show()
-            }) {
+            IconButton(onClick = { onEdit(item) }) {
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Edit ${item.name}",

@@ -40,5 +40,6 @@ fun AppNavGraph() {
         mainNavGraph(navManager)
         staffNavGraph(navManager)
         reportNavGraph(navManager)
+        lenderNavGraph(navManager)
     }
 }

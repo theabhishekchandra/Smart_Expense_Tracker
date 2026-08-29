@@ -1,5 +1,7 @@
 package com.abhishek.spendly.ui.screens.business
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -51,6 +53,10 @@ fun EditBusinessDetailsScreen(
     val businessTypes = listOf("Retail", "Restaurant", "Service", "Freelancer", "Other")
     val currencyOptions = Currency.entries.map { it.value }
 
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri -> uri?.let { logoUrl = it.toString() } }
+
     Scaffold(
         topBar = {
             FinanceTopBar(
@@ -92,7 +98,7 @@ fun EditBusinessDetailsScreen(
                 imageUrl = logoUrl,
                 contentDescription = "Business logo",
                 fallbackIcon = Icons.Default.Store,
-                onEditClick = { /* TODO: Open image picker */ }
+                onEditClick = { imagePickerLauncher.launch("image/*") }
             )
 
             Spacer(Modifier.height(AppSpacing.lg))

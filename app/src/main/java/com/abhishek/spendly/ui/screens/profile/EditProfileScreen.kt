@@ -1,5 +1,7 @@
 package com.abhishek.spendly.ui.screens.profile
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -54,6 +56,10 @@ fun EditProfileScreen(
     val genderOptions = listOf("Male", "Female", "Other")
     val currencyOptions = Currency.entries.map { it.value }
 
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri -> uri?.let { profileUrl = it.toString() } }
+
     Scaffold(
         topBar = {
             FinanceTopBar(
@@ -95,7 +101,7 @@ fun EditProfileScreen(
                 imageUrl = profileUrl,
                 contentDescription = "Profile picture",
                 fallbackIcon = Icons.Default.Person,
-                onEditClick = { /* TODO: Open image picker */ }
+                onEditClick = { imagePickerLauncher.launch("image/*") }
             )
 
             Spacer(Modifier.height(AppSpacing.lg))

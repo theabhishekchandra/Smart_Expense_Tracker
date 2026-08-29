@@ -8,6 +8,7 @@ sealed class ScreenRoutes(val route: String) {
     object SplashGraph : ScreenRoutes(RoutesConst.SPLASH_GRAPH)
     object StaffGraph : ScreenRoutes(RoutesConst.STAFF_GRAPH)
     object ReportGraph : ScreenRoutes(RoutesConst.REPORT_GRAPH)
+    object LenderGraph : ScreenRoutes(RoutesConst.LENDER_GRAPH)
 
     // Splash & Onboarding
     object Splash : ScreenRoutes(RoutesConst.SPLASH_SCREEN)
@@ -34,6 +35,16 @@ sealed class ScreenRoutes(val route: String) {
     object ExpenseList : ScreenRoutes(RoutesConst.EXPENSE_LIST_SCREEN)
     object ExpenseDetail : ScreenRoutes("${RoutesConst.EXPENSE_DETAIL_SCREEN}/{${RoutesConst.EXPENSE_ID}}") {
         fun passExpenseId(expenseId: String) = "${RoutesConst.EXPENSE_DETAIL_SCREEN}/$expenseId"
+    }
+
+    // Lender / Borrower
+    object LenderList : ScreenRoutes(RoutesConst.LENDER_LIST_SCREEN)
+    object AddLender : ScreenRoutes(RoutesConst.ADD_LENDER_SCREEN)
+    object LenderDetails : ScreenRoutes("${RoutesConst.LENDER_DETAILS_SCREEN}/{${RoutesConst.LENDER_ID}}") {
+        fun passLenderId(lenderId: String) = "${RoutesConst.LENDER_DETAILS_SCREEN}/$lenderId"
+    }
+    object EditLender : ScreenRoutes("${RoutesConst.EDIT_LENDER_SCREEN}/{${RoutesConst.LENDER_ID}}") {
+        fun passLenderId(lenderId: String) = "${RoutesConst.EDIT_LENDER_SCREEN}/$lenderId"
     }
 
     // Budget & Reports

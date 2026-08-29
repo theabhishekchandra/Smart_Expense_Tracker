@@ -26,15 +26,22 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddLenderBorrowerScreen(
+    currentName: String = "",
+    currentMobile: String = "",
+    currentAmount: String = "",
+    currentIsGiven: Boolean = true,
+    currentDueDate: String = "",
+    currentNotes: String = "",
     onSave: (String, String, String, Boolean, String, String) -> Unit,
     onCancel: () -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var mobile by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
-    var isGiven by remember { mutableStateOf(true) }
-    var dueDate by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
+    val isEditMode = currentName.isNotBlank()
+    var name by remember { mutableStateOf(currentName) }
+    var mobile by remember { mutableStateOf(currentMobile) }
+    var amount by remember { mutableStateOf(currentAmount) }
+    var isGiven by remember { mutableStateOf(currentIsGiven) }
+    var dueDate by remember { mutableStateOf(currentDueDate) }
+    var notes by remember { mutableStateOf(currentNotes) }
 
     val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 
@@ -61,7 +68,7 @@ fun AddLenderBorrowerScreen(
                     shape = AppShapes.small,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Save")
+                    Text(if (isEditMode) "Update" else "Save")
                 }
             }
         }
@@ -92,7 +99,7 @@ fun AddLenderBorrowerScreen(
                     }
                     Spacer(modifier = Modifier.height(AppSpacing.sm))
                     Text(
-                        text = "Add Lender / Borrower",
+                        text = if (isEditMode) "Edit Lender / Borrower" else "Add Lender / Borrower",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

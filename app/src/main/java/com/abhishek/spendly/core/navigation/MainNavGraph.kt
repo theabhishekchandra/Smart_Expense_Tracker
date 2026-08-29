@@ -12,6 +12,10 @@ import com.abhishek.spendly.ui.screens.expense.ExpenseDetailScreen
 import com.abhishek.spendly.ui.screens.home.HomeScreen
 import com.abhishek.spendly.ui.screens.home.HomeViewModel
 import com.abhishek.spendly.ui.screens.expense.ExpenseListScreen
+import com.abhishek.spendly.ui.screens.legal.AboutUsScreen
+import com.abhishek.spendly.ui.screens.legal.FaqScreen
+import com.abhishek.spendly.ui.screens.legal.PrivacyPolicyScreen
+import com.abhishek.spendly.ui.screens.legal.TermsAndConditionsScreen
 import com.abhishek.spendly.ui.screens.login.viewmodel.ExpenseViewModel
 import com.abhishek.spendly.ui.screens.profile.EditProfileScreen
 import com.abhishek.spendly.ui.screens.profile.ProfileScreen
@@ -145,6 +149,20 @@ fun NavGraphBuilder.mainNavGraph(navManager: NavManager) {
         )
     }
 
+
+    // Legal & Support
+    composable(ScreenRoutes.PrivacyPolicy.route) {
+        PrivacyPolicyScreen(navManager = navManager)
+    }
+    composable(ScreenRoutes.TermsAndConditions.route) {
+        TermsAndConditionsScreen(navManager = navManager)
+    }
+    composable(ScreenRoutes.AboutUs.route) {
+        AboutUsScreen(navManager = navManager)
+    }
+    composable(ScreenRoutes.FAQ.route) {
+        FaqScreen(navManager = navManager)
+    }
 
     /*
     composable(

@@ -11,6 +11,7 @@ object  RoutesConst {
     const val SPLASH_GRAPH = "SPLASH_GRAPH"
     const val STAFF_GRAPH = "STAFF_GRAPH"
     const val REPORT_GRAPH = "REPORT_GRAPH"
+    const val LENDER_GRAPH = "LENDER_GRAPH"
 
     // Splash & Onboarding
     const val SPLASH_SCREEN = "SPLASH_SCREEN"
@@ -39,6 +40,12 @@ object  RoutesConst {
     const val ADD_INCOME_SCREEN = "ADD_INCOME_SCREEN"
     const val EXPENSE_LIST_SCREEN = "EXPENSE_LIST_SCREEN"
     const val EXPENSE_DETAIL_SCREEN = "EXPENSE_DETAIL_SCREEN"
+
+    // Lender / Borrower
+    const val LENDER_LIST_SCREEN = "LENDER_LIST_SCREEN"
+    const val LENDER_DETAILS_SCREEN = "LENDER_DETAILS_SCREEN"
+    const val ADD_LENDER_SCREEN = "ADD_LENDER_SCREEN"
+    const val EDIT_LENDER_SCREEN = "EDIT_LENDER_SCREEN"
 
     // Budget & Reports
     const val BUDGET_SETUP_SCREEN = "BUDGET_SETUP_SCREEN"
@@ -81,6 +88,7 @@ object  RoutesConst {
     // Arguments
     const val EXPENSE_ID = "expense_id"
     const val STAFF_ID = "staff_id"
+    const val LENDER_ID = "lender_id"
 
     val EXPENSE_DETAIL_ARGUMENT = listOf(
         navArgument(EXPENSE_ID) { type = NavType.StringType }
@@ -88,5 +96,9 @@ object  RoutesConst {
 
     val STAFF_DETAIL_ARGUMENT = listOf(
         navArgument(STAFF_ID) { type = NavType.StringType }
+    )
+
+    val LENDER_DETAIL_ARGUMENT = listOf(
+        navArgument(LENDER_ID) { type = NavType.StringType }
     )
 }
