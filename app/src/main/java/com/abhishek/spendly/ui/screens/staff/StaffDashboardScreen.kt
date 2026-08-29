@@ -1,6 +1,6 @@
 package com.abhishek.spendly.ui.screens.staff
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.abhishek.spendly.ui.theme.isAppDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -55,7 +55,7 @@ data class AllocatedExpense(
 /** Semantic color for a free-form staff expense status string ("Pending"/"Approved"/"Rejected"). */
 @Composable
 private fun staffExpenseStatusColor(status: String): Color {
-    val dark = isSystemInDarkTheme()
+    val dark = isAppDarkTheme()
     return when (status.lowercase()) {
         "approved" -> if (dark) SuccessColorDark else SuccessColor
         "rejected" -> if (dark) DangerColorDark else DangerColor

@@ -3,7 +3,6 @@ package com.abhishek.spendly
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -56,13 +55,13 @@ class MainActivity : ComponentActivity() {
             }
 
 
+            val isDark = themeMode == ThemeType.DARK
+
             SpendlyTheme(
-                darkTheme = themeMode == ThemeType.DARK,
+                darkTheme = isDark,
                 appFlavor = appFlavor,
             ) {
-//                AppSetup()
-                AppNavGraph()
-
+                AppSetup(darkTheme = isDark)
             }
         }
 
@@ -75,15 +74,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 @Composable
-fun AppSetup(){
+fun AppSetup(darkTheme: Boolean){
     val systemUiController = rememberSystemUiController()
-    val useDarkIcons = !isSystemInDarkTheme()
     val backgroundColor = MaterialTheme.colorScheme.background
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(darkTheme, backgroundColor) {
         systemUiController.setStatusBarColor(
             color = backgroundColor,
-            darkIcons = useDarkIcons
+            darkIcons = !darkTheme
         )
     }
 

@@ -6,6 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 // ------------------ COLOR PALETTES ------------------ //
 // "Vibrant gradient fintech" system: each flavor's primary->tertiary pair is the
@@ -253,3 +254,13 @@ fun SpendlyTheme(
         content = content
     )
 }
+
+/**
+ * Whether the app's *active* color scheme is dark - driven by the in-app Dark Mode
+ * preference (the [SpendlyTheme] `darkTheme` param), not the OS setting. Prefer this
+ * over [isSystemInDarkTheme] when picking between a light/dark variant of a semantic
+ * color, so it stays in sync with the toggle in Settings even when it disagrees with
+ * the system theme.
+ */
+@Composable
+fun isAppDarkTheme(): Boolean = MaterialTheme.colorScheme.background.luminance() < 0.5f

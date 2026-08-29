@@ -4,7 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.abhishek.spendly.ui.theme.isAppDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -230,7 +230,7 @@ data class LenderBorrowerDM(
 /** Semantic color for a [LoanStatus], shared by the lender/borrower screens. */
 @Composable
 fun loanStatusColor(status: LoanStatus): Color {
-    val dark = isSystemInDarkTheme()
+    val dark = isAppDarkTheme()
     return when (status) {
         LoanStatus.PENDING -> if (dark) WarningColorDark else WarningColor
         LoanStatus.PAID -> if (dark) SuccessColorDark else SuccessColor

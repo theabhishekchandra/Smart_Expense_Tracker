@@ -25,6 +25,7 @@ import com.abhishek.spendly.ui.components.FinanceTopBar
 import com.abhishek.spendly.ui.components.GradientCard
 import com.abhishek.spendly.ui.screens.setting.SettingsViewModel
 import com.abhishek.spendly.ui.theme.AppSpacing
+import com.abhishek.spendly.ui.theme.GreyColor
 import com.abhishek.spendly.ui.theme.SpendlyTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,8 +178,13 @@ fun PlanCard(
                 tagContainerColor = Color.White.copy(alpha = 0.22f),
                 tagContentColor = Color.White,
                 buttonColors = ButtonDefaults.buttonColors(
+                    // The button itself stays a solid white pill regardless of theme
+                    // (it's meant to pop against the vivid hero gradient), so its label
+                    // needs a color that's always dark - `colorScheme.primary` flips to
+                    // a pale, on-dark-surface tone in dark mode and becomes unreadable
+                    // on this white container.
                     containerColor = Color.White,
-                    contentColor = MaterialTheme.colorScheme.primary
+                    contentColor = GreyColor
                 ),
                 buttonLabel = buttonLabel,
                 onClick = onClick

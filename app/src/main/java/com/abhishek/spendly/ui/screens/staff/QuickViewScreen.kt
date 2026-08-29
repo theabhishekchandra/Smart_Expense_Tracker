@@ -1,7 +1,7 @@
 package com.abhishek.spendly.ui.screens.staff
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.abhishek.spendly.ui.theme.isAppDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -51,7 +51,7 @@ val sampleContributions = listOf(
  */
 @Composable
 fun statusColor(status: Status): Color {
-    val dark = isSystemInDarkTheme()
+    val dark = isAppDarkTheme()
     return when (status) {
         Status.Pending -> if (dark) WarningColorDark else WarningColor
         Status.Approved -> if (dark) SuccessColorDark else SuccessColor

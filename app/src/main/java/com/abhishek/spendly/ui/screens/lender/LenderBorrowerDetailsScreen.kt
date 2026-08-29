@@ -1,7 +1,7 @@
 package com.abhishek.spendly.ui.screens.lender
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.abhishek.spendly.ui.theme.isAppDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,7 +46,7 @@ data class PersonDetail(
 /** Semantic color for a free-form lending status string ("Paid"/"Pending"/"Overdue"). */
 @Composable
 private fun lendingStatusColor(status: String): Color {
-    val dark = isSystemInDarkTheme()
+    val dark = isAppDarkTheme()
     return when (status.lowercase()) {
         "paid" -> if (dark) SuccessColorDark else SuccessColor
         "overdue" -> if (dark) DangerColorDark else DangerColor

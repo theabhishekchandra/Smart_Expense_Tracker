@@ -2,7 +2,7 @@
 
 package com.abhishek.spendly.ui.screens.expense
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.abhishek.spendly.ui.theme.isAppDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -39,7 +39,7 @@ fun BudgetScreen(navManager: NavManager? = null) {
         else -> "Safe"
     }
 
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppDarkTheme()
     val statusColor = when (budgetStatus) {
         "Exceeded" -> if (isDark) DangerColorDark else DangerColor
         "Nearing Limit" -> if (isDark) WarningColorDark else WarningColor

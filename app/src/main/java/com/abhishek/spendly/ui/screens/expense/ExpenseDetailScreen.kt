@@ -3,7 +3,7 @@ package com.abhishek.spendly.ui.screens.expense
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.abhishek.spendly.ui.theme.isAppDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -52,7 +52,7 @@ fun ExpenseDetailScreen(
     viewModel: ExpenseViewModel? = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppDarkTheme()
     val successColor = if (isDark) SuccessColorDark else SuccessColor
     val dangerColor = if (isDark) DangerColorDark else DangerColor
     val warningColor = if (isDark) WarningColorDark else WarningColor

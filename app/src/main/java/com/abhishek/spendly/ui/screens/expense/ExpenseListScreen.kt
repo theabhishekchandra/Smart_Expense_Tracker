@@ -4,7 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.abhishek.spendly.ui.theme.isAppDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -224,7 +224,7 @@ fun SwipeableExpenseItem(
     onClick: (ExpenseDM) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppDarkTheme()
     val successColor = if (isDark) SuccessColorDark else SuccessColor
     val dangerColor = if (isDark) DangerColorDark else DangerColor
     val warningColor = if (isDark) WarningColorDark else WarningColor
