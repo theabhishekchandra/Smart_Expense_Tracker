@@ -1,90 +1,106 @@
-# Smart Daily Expense Tracker
-**By: Abhishek Chandra**
+# Spendly
+
+**By Abhishek Chandra**
+
+Spendly is an Android expense tracker for individuals and small business
+owners. It covers personal expense tracking, a business mode with staff
+expense submission and admin/approver approval workflows, budget and
+per-staff allocation tracking, and an informal lending/borrowing ledger for
+money lent to or borrowed from contacts.
 
 ---
 
-## App Overview
-The Smart Daily Expense Tracker helps small business owners manage daily expenses efficiently.  
-Users can:
-- Add expenses with title, amount, category, optional notes, and optional receipt images.  
-- View expenses for today, previous days, or last 7 days.  
-- Group expenses by category or date.  
-- Generate reports with daily totals, category totals, and bar charts.  
-- Export and share expense data as CSV (simulated PDF support).  
+## Features
 
-This app is built with **Jetpack Compose**, **MVVM architecture**, and **StateFlow** for modern Android best practices.
+**Personal**
+- Add expenses with title, amount, category, notes, and an optional receipt
+  image
+- Filter by today, yesterday, last 7 days, or all time; group by category or
+  date
+- Budgets with progress tracking and limit alerts
+- A dashboard with today's spend, income vs. expense, and category
+  breakdowns
 
----
+**Business mode**
+- Staff management with role-based access (Admin, Approver, Entry-only,
+  Viewer)
+- Expense submission and an admin/approver approval queue
+- Budget allocations per staff member with usage tracking
+- A staff spending leaderboard and per-staff dashboards
 
----
+**Lending & borrowing**
+- A contact-based ledger for money lent or borrowed, independent of regular
+  expenses
+- Repayment tracking with automatic status (pending / partial / paid)
 
-## AI Usage Summary
-AI tools were leveraged extensively to accelerate development and improve code quality:
-
-**ChatGPT**:  
-1. Generated **Jetpack Compose UI layouts**, reusable components, and screen structures.  
-2. Assisted in writing **ViewModel logic**, repository functions, and **CSV export / data aggregation** functions.  
-3. Suggested **input validation**, **duplicate detection**, and **performance optimizations** for smooth app behavior.  
- 
----
-
-## Prompt Logs
-| Feature | AI Prompt | Result / Notes |
-|---------|-----------|----------------|
-| Expense Entry Screen | "Generate Jetpack Compose input fields for title, amount, category dropdown, notes, receipt image, submit button" | Created UI with validation and animated submit |
-| Last 7 Days Totals | "Write Kotlin function to calculate last 7 days expenses using StateFlow" | Implemented in ViewModel |
-| CSV Export | "Generate CSV export function for list of Expense data class" | Works with share intent |
-| Report Screen | "Create Jetpack Compose report screen with daily totals, category totals, and bar chart" | Implemented LazyColumn-based report |
-| Duplicate Detection | "Add duplicate expense detection before inserting into repository" | Added in addExpense() function |
-
+**Reports & subscription**
+- Spending trend charts, category breakdowns, and exportable reports
+- Personal/business tiers with basic, monthly, and yearly premium plans
 
 ---
 
-## Feature Checklist
+## Tech stack
 
-- [x] Expense Entry Screen: Title, Amount, Category, Notes, Receipt Image  
-- [x] Total Spent Today displayed on top  
-- [x] Expense List Screen: Filter by Today, Yesterday, Last 7 Days, All  
-- [x] Toggle grouping by category or date  
-- [x] Report Screen: Daily totals, Category totals, Bar chart  
-- [x] Export and Share CSV (simulated PDF)  
-- [x] Duplicate detection on adding expenses  
-- [x] Input validation (amount > 0, title non-empty)  
-- [x] MVVM Architecture with StateFlow  
-- [x] Jetpack Compose UI  
-- [x] Offline-first mock support  
+- **UI:** Jetpack Compose, Material 3 (custom theme system: per-flavor color
+  schemes, a brand gradient, shared shape/spacing tokens, and a small motion
+  library for screen transitions and micro-interactions)
+- **Architecture:** MVVM with `StateFlow`, Hilt for dependency injection
+- **Persistence:** Room (local database), DataStore (preferences)
+- **Networking:** Ktor client (scaffolded for a future backend — see
+  [docs/BACKEND_API_SPEC.md](docs/BACKEND_API_SPEC.md); the app is
+  local-only today)
+- **Async:** Kotlin Coroutines
 
 ---
 
-## APK
-Download and install the app from:  
-[Smart Daily Expense Tracker APK](https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/APK/app-debug.apk)  
+## Project structure
+
+```
+app/src/main/java/com/abhishek/spendly/
+├── core/            # DI modules, navigation graphs, DataStore, utils
+├── data/            # Room entities/DAOs, repositories, domain models
+└── ui/
+    ├── components/  # Shared composables (buttons, cards, top bars, theme-aware widgets)
+    ├── screens/     # One package per feature area (expense, home, staff, lender, ...)
+    └── theme/       # Color schemes, typography, shapes, spacing, gradients, motion
+```
+
+---
+
+## Getting started
+
+Requires Android Studio (or the command line) with JDK 17–21. **Note:** if
+your default JDK is newer than 23, Gradle 8.13 will fail to build — either
+switch your `JAVA_HOME` to a JDK in that range or use Android Studio's
+bundled JBR and confirm the project's Gradle JDK setting (`File > Project
+Structure > SDK Location`, or `.idea/gradle.xml`) points to it.
+
+```bash
+./gradlew assembleDebug     # build a debug APK
+./gradlew installDebug      # build and install on a connected device/emulator
+./gradlew build             # full build: both variants, unit tests, lint
+```
+
+---
+
+## Documentation
+
+- [docs/BACKEND_API_SPEC.md](docs/BACKEND_API_SPEC.md) — data model and REST
+  API spec for the backend this app doesn't have yet
+- [docs/MARKET_RESEARCH.md](docs/MARKET_RESEARCH.md) — competitive
+  landscape and monetization research for this product category
+- [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) — phased plan for
+  turning the above into a shipped product
 
 ---
 
 ## Screenshots
 
-**Expense Entry Screen**  
-<img src="https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/Screenshots/Add%20expense%20without%20data.jpg" width="400"/>
-
-**Expense List Screen**  
-<img src="https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/Screenshots/Expense%20With%20data%20filter.jpg" width="400"/>
-
-**Report Screen (Last 7 Days)**  
-<img src="https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/Screenshots/Last%207%20Days%20Report.jpg" width="400"/>
-
-**Export / Share CSV**  
-<img src="https://github.com/theabhishekchandra/Smart_Expense_Tracker/blob/master/Screenshots/Share%20last%207%20day%20report.jpg" width="400"/>
+<img src="Screenshots/onboarding.png" width="260"/> <img src="Screenshots/login.png" width="260"/> <img src="Screenshots/home.png" width="260"/>
+<img src="Screenshots/reports.png" width="260"/> <img src="Screenshots/profile.png" width="260"/>
 
 ---
 
-## Source Code
-Full source code is available in the `Source_Code/` folder.  
-- **Jetpack Compose UI**  
-- **MVVM architecture**  
-- **Clean & modular project structure**  
+## License
 
----
-
-**Note:**  
-All AI usage has been documented honestly. The project demonstrates AI-assisted Android development, combining human coding expertise with AI support for efficiency and quality.
+MIT — see [LICENSE](LICENSE).

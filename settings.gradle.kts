@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Smart Expense Tracker"
+rootProject.name = "Spendly"
 include(":app")

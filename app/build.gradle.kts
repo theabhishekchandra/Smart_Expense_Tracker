@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.abhishek.smartexpensetracker"
+    namespace = "com.abhishek.spendly"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.abhishek.smartexpensetracker"
+        applicationId = "com.abhishek.spendly"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

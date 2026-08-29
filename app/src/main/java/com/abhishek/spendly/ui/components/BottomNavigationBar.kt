@@ -1,0 +1,110 @@
+package com.abhishek.spendly.ui.components
+
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardVoice
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.abhishek.spendly.core.navigation.ScreenRoutes
+import com.abhishek.spendly.ui.theme.SpendlyTheme
+
+@Composable
+fun BottomNavigationBar(
+    selectedRoute: String,
+    onItemSelected: (String) -> Unit,
+) {
+    val items = listOf(
+        BottomNavItem("Home", Icons.Default.Home, ScreenRoutes.Home.route),
+        BottomNavItem("Expenses", Icons.AutoMirrored.Filled.ReceiptLong, ScreenRoutes.ExpenseList.route),
+        BottomNavItem("Voice", Icons.Default.KeyboardVoice, ScreenRoutes.Voice.route),
+        BottomNavItem("Reports", Icons.Default.PieChart, ScreenRoutes.Reports.route),
+        BottomNavItem("Profile", Icons.Default.AccountCircle, ScreenRoutes.Profile.route)
+    )
+
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.background,
+        tonalElevation = 4.dp
+    ) {
+        items.forEach { item ->
+            val isSelected = selectedRoute == item.route
+
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = { onItemSelected(item.route) },
+                icon = {
+                    if (item.label == "Voice") {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(37.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                        )
+                    }
+                },
+                label = {
+                    if (item.label != "Voice") {
+                        Text(
+                            text = item.label,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                alwaysShowLabel = item.label != "Voice"
+            )
+        }
+    }
+}
+
+data class BottomNavItem(
+    val label: String,
+    val icon: ImageVector,
+    val route: String
+)
+
+@Preview(showBackground = true)
+@Composable
+private fun BottomNavigationBarLightPreview() {
+    SpendlyTheme(
+        true,
+
+    ){
+    BottomNavigationBar(
+            selectedRoute = ScreenRoutes.Home.route,
+            onItemSelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BottomNavigationBarDarkPreview() {
+    SpendlyTheme(
+        true,
+
+    ){
+        BottomNavigationBar(
+            selectedRoute = ScreenRoutes.Home.route,
+            onItemSelected = {}
+        )
+    }
+}
