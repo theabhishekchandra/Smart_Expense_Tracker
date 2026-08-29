@@ -265,7 +265,13 @@ fun HomeScreen(
                                 onReject = { item -> viewModel.rejectApproval(item.id) }
                             )
                         }
-                        if (s.staffSpendingList.isNotEmpty()) item { StaffLeaderboardCard(s.staffSpendingList, currency) }
+                        if (s.staffSpendingList.isNotEmpty()) item {
+                            StaffLeaderboardCard(
+                                leaderboard = s.staffSpendingList,
+                                currency = currency,
+                                onManageStaff = { navManager?.navigate(ScreenRoutes.StaffManagement.route) }
+                            )
+                        }
                         if (s.staffSpendingList.isNotEmpty()) item { StaffPerformanceCard(s.staffSpendingList, currency!!) }
                         item {
                             OutstandingDuesCard(
@@ -310,7 +316,8 @@ fun HomeScreen(
 @Composable
 private fun StaffLeaderboardCard(
     leaderboard: List<StaffSpending>,
-    currency: Currency?
+    currency: Currency?,
+    onManageStaff: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -319,7 +326,16 @@ private fun StaffLeaderboardCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(Modifier.padding(AppSpacing.md), verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-            Text("Staff Leaderboard", style = MaterialTheme.typography.titleMedium)
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Staff Leaderboard", style = MaterialTheme.typography.titleMedium)
+                TextButton(onClick = onManageStaff) {
+                    Text("Manage", style = MaterialTheme.typography.labelLarge)
+                }
+            }
             leaderboard.take(5).forEachIndexed { index, staff ->
                 Row(
                     Modifier.fillMaxWidth(),

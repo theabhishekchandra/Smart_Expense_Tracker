@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.tooling.preview.Preview
+import com.abhishek.spendly.core.navigation.NavManager
 import com.abhishek.spendly.ui.theme.AppShapes
 import com.abhishek.spendly.ui.theme.AppSpacing
 import com.abhishek.spendly.ui.theme.RoleAdmin
@@ -76,7 +78,7 @@ val sampleStaffList = mutableStateListOf(
 // --- Staff Management Screen ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StaffManagementScreen() {
+fun StaffManagementScreen(navManager: NavManager? = null) {
     var showAddDialog by remember { mutableStateOf(false) }
     var staffBeingEdited by remember { mutableStateOf<Staff?>(null) }
 
@@ -84,6 +86,13 @@ fun StaffManagementScreen() {
         topBar = {
             TopAppBar(
                 title = { Text("Staff Management") },
+                navigationIcon = {
+                    if (navManager != null) {
+                        IconButton(onClick = { navManager.navigateBack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                },
                 actions = {
                     IconButton(onClick = { showAddDialog = true }) {
                         Icon(Icons.Default.Add, contentDescription = "Add Staff")

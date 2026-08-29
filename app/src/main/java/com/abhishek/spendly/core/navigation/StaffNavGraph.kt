@@ -25,7 +25,7 @@ fun NavGraphBuilder.staffNavGraph(navManager: NavManager) {
         }
         composable(ScreenRoutes.StaffManagement.route) {
             // Staff Management Screen
-            StaffManagementScreen()
+            StaffManagementScreen(navManager = navManager)
         }
         composable(ScreenRoutes.Approval.route) {
             // Approval Screen
