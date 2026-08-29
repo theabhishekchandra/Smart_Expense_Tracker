@@ -145,6 +145,12 @@ fun HomeScreen(
                                 text = { Text("Refresh") },
                                 onClick = { menuExpanded = false; viewModel.refreshHome() }
                             )
+                            if (isBusiness) {
+                                DropdownMenuItem(
+                                    text = { Text("Staff Dashboard") },
+                                    onClick = { menuExpanded = false; navManager?.navigate(ScreenRoutes.StaffDashboard.route) }
+                                )
+                            }
                             DropdownMenuItem(
                                 text = { Text("Settings") },
                                 onClick = { menuExpanded = false; navManager?.navigate(ScreenRoutes.Settings.route) }

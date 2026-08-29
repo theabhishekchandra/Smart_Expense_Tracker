@@ -20,8 +20,7 @@ fun NavGraphBuilder.staffNavGraph(navManager: NavManager) {
     ) {
         composable(ScreenRoutes.StaffDashboard.route) {
             // Staff Dashboard Screen
-            // Example: StaffDashboardScreen(navManager)
-            StaffDashboardScreen()
+            StaffDashboardScreen(navManager = navManager)
         }
         composable(ScreenRoutes.StaffManagement.route) {
             // Staff Management Screen
@@ -29,7 +28,7 @@ fun NavGraphBuilder.staffNavGraph(navManager: NavManager) {
         }
         composable(ScreenRoutes.Approval.route) {
             // Approval Screen
-            PendingApprovalsScreen()
+            PendingApprovalsScreen(navManager = navManager)
         }
         composable(ScreenRoutes.StaffReports.route) {
             // Staff Reports Screen

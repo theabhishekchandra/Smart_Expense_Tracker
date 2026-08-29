@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.abhishek.spendly.core.navigation.NavManager
 import com.abhishek.spendly.ui.components.AnimatedAmountText
 import com.abhishek.spendly.ui.components.GlassStatTile
 import com.abhishek.spendly.ui.components.GradientCard
@@ -64,7 +66,7 @@ private fun staffExpenseStatusColor(status: String): Color {
 // ====================== Composable Screen ======================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StaffDashboardScreen() {
+fun StaffDashboardScreen(navManager: NavManager? = null) {
     // Mock Allocated by Admin
     var allocatedExpenses by remember {
         mutableStateOf(
@@ -93,7 +95,16 @@ fun StaffDashboardScreen() {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Staff Dashboard") })
+            TopAppBar(
+                title = { Text("Staff Dashboard") },
+                navigationIcon = {
+                    if (navManager != null) {
+                        IconButton(onClick = { navManager.navigateBack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                }
+            )
         }
     ) { padding ->
         Column(

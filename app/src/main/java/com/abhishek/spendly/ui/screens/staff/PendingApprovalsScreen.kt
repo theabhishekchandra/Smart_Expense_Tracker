@@ -17,6 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.abhishek.spendly.core.navigation.NavManager
+import com.abhishek.spendly.ui.components.FinanceTopBar
 import com.abhishek.spendly.ui.theme.AppShapes
 import com.abhishek.spendly.ui.theme.AppSpacing
 
@@ -41,27 +43,39 @@ val samplePendingExpenses = mutableStateListOf(
 )
 
 @Composable
-fun PendingApprovalsScreen() {
+fun PendingApprovalsScreen(navManager: NavManager? = null) {
     var selectedExpense by remember { mutableStateOf<StaffExpensePending?>(null) }
     var showDialog by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(AppSpacing.md)) {
-        Text(
-            text = "Pending Approvals",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(AppSpacing.md))
-
-        if (samplePendingExpenses.isEmpty()) {
-            EmptyApprovalsState()
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
-            ) {
-                items(samplePendingExpenses) { expense ->
-                    StaffExpenseCard(expense, onApproveReject = { selectedExpense = it; showDialog = true })
+    Scaffold(
+        topBar = {
+            FinanceTopBar(
+                title = "Pending Approvals",
+                showBackButton = true,
+                onBackClick = { navManager?.navigateBack() },
+                showSearch = false,
+                showFilter = false,
+                showNotifications = false,
+                showMenu = false
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(AppSpacing.md)
+        ) {
+            if (samplePendingExpenses.isEmpty()) {
+                EmptyApprovalsState()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+                ) {
+                    items(samplePendingExpenses) { expense ->
+                        StaffExpenseCard(expense, onApproveReject = { selectedExpense = it; showDialog = true })
+                    }
                 }
             }
         }
