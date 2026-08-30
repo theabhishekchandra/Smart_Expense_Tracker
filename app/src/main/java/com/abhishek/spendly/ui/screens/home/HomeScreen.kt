@@ -59,6 +59,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -78,6 +79,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -90,7 +92,14 @@ import com.abhishek.spendly.data.model.ExpenseStatus
 import com.abhishek.spendly.ui.components.BaseScaffold
 import com.abhishek.spendly.ui.screens.staff.Role
 import com.abhishek.spendly.ui.theme.AppSpacing
+import com.abhishek.spendly.ui.theme.DangerColor
+import com.abhishek.spendly.ui.theme.DangerColorDark
 import com.abhishek.spendly.ui.theme.SpendlyTheme
+import com.abhishek.spendly.ui.theme.SuccessColor
+import com.abhishek.spendly.ui.theme.SuccessColorDark
+import com.abhishek.spendly.ui.theme.WarningColor
+import com.abhishek.spendly.ui.theme.WarningColorDark
+import com.abhishek.spendly.ui.theme.isAppDarkTheme
 import kotlin.collections.take
 import kotlin.math.roundToInt
 
@@ -466,39 +475,76 @@ private fun CategoryBreakdownCard(slices: List<CategorySlice>, currency: Currenc
 
 @Composable
 private fun BudgetsCard(items: List<BudgetProgress>, currency: Currency?) {
+    val isDark = isAppDarkTheme()
+    val symbol = currency?.symbol ?: "₹"
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Column(Modifier.padding(AppSpacing.md), verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
+        Column(Modifier.padding(AppSpacing.md), verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
             Text("Budgets", style = MaterialTheme.typography.titleMedium)
-            items.forEach { b ->
-                Column(Modifier.fillMaxWidth()) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(b.category, style = MaterialTheme.typography.bodyMedium)
+            items.forEachIndexed { index, b ->
+                val pct = (b.spent / (b.limit.coerceAtLeast(1.0))).toFloat().coerceIn(0f, 1f)
+                val status = when {
+                    pct >= 1f -> "Exceeded"
+                    pct >= 0.8f -> "Nearing limit"
+                    else -> "On track"
+                }
+                val statusColor = when (status) {
+                    "Exceeded" -> if (isDark) DangerColorDark else DangerColor
+                    "Nearing limit" -> if (isDark) WarningColorDark else WarningColor
+                    else -> if (isDark) SuccessColorDark else SuccessColor
+                }
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            "₹ ${b.spent.roundToInt()} / ₹ ${b.limit.roundToInt()}",
+                            b.category,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontWeight = FontWeight.Medium
                         )
+                        Surface(
+                            shape = MaterialTheme.shapes.extraSmall,
+                            color = statusColor.copy(alpha = 0.14f)
+                        ) {
+                            Text(
+                                status,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = statusColor,
+                                modifier = Modifier.padding(horizontal = AppSpacing.sm, vertical = 2.dp)
+                            )
+                        }
                     }
-                    val pct = (b.spent / (b.limit.coerceAtLeast(1.0))).toFloat().coerceIn(0f, 1f)
                     LinearProgressIndicator(
                         progress = { pct },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(10.dp)
                             .clip(MaterialTheme.shapes.extraSmall),
+                        color = statusColor,
+                        trackColor = statusColor.copy(alpha = 0.16f)
                     )
-                    if (pct >= 1f) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(
-                            text = "Limit exceeded",
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelMedium
+                            "$symbol ${b.spent.roundToInt()} of $symbol ${b.limit.roundToInt()}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            "${(pct * 100).roundToInt()}%",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = statusColor,
+                            fontWeight = FontWeight.Medium
                         )
                     }
+                }
+                if (index != items.lastIndex) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 }
             }
         }
