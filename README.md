@@ -2,11 +2,7 @@
 
 **By Abhishek Chandra**
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org)
-[![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
-[![Material 3](https://img.shields.io/badge/Material%203-757575?style=flat-square&logo=materialdesign&logoColor=white)](https://m3.material.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-3DDC84?style=flat-square)](LICENSE)
-[![Last commit](https://img.shields.io/github/last-commit/theabhishekchandra/Spendly?style=flat-square&color=3DDC84)](https://github.com/theabhishekchandra/Spendly/commits/master)
+[![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org) [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose) [![Material 3](https://img.shields.io/badge/Material%203-757575?style=flat-square&logo=materialdesign&logoColor=white)](https://m3.material.io) [![License: MIT](https://img.shields.io/badge/License-MIT-3DDC84?style=flat-square)](LICENSE) [![Last commit](https://img.shields.io/github/last-commit/theabhishekchandra/Spendly?style=flat-square&color=3DDC84)](https://github.com/theabhishekchandra/Spendly/commits/master)
 
 > Personal spending, staff expense approvals, and an informal lending ledger — one native Android app instead of three separate ones.
 
