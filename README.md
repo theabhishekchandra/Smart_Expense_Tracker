@@ -10,6 +10,8 @@
 
 > Personal spending, staff expense approvals, and an informal lending ledger — one native Android app instead of three separate ones.
 
+**Contents:** [The problem](#the-problem) · [Features](#features) · [Screenshots](#screenshots) · [Tech stack](#tech-stack) · [Project structure](#project-structure) · [Getting started](#getting-started) · [Documentation](#documentation) · [Roadmap](#roadmap) · [License](#license)
+
 ---
 
 ## The problem
@@ -149,19 +151,35 @@ completely separate from regular expenses.
 
 **Onboarding & login**
 
-<img src="Screenshots/onboarding.png" width="230"/> <img src="Screenshots/login.png" width="230"/>
+| <img src="Screenshots/onboarding.png" width="200"/> | <img src="Screenshots/login.png" width="200"/> | <img src="Screenshots/signup.png" width="200"/> |
+|:---:|:---:|:---:|
+| Onboarding | Login | Sign up |
 
-**Home & expenses**
+**Personal mode**
 
-<img src="Screenshots/home.png" width="230"/> <img src="Screenshots/add-expense.png" width="230"/> <img src="Screenshots/expense-list.png" width="230"/>
+| <img src="Screenshots/home.png" width="200"/> | <img src="Screenshots/add-expense.png" width="200"/> | <img src="Screenshots/expense-list.png" width="200"/> | <img src="Screenshots/budgets.png" width="200"/> |
+|:---:|:---:|:---:|:---:|
+| Home dashboard | Add expense | Expense list | Budgets |
 
-**Reports, profile & settings**
+| <img src="Screenshots/reports.png" width="200"/> | <img src="Screenshots/profile.png" width="200"/> | <img src="Screenshots/settings.png" width="200"/> | <img src="Screenshots/subscription.png" width="200"/> |
+|:---:|:---:|:---:|:---:|
+| Reports | Profile | Settings | Subscription |
 
-<img src="Screenshots/reports.png" width="230"/> <img src="Screenshots/profile.png" width="230"/> <img src="Screenshots/settings.png" width="230"/>
+**Business mode & staff**
 
-**Subscription**
+| <img src="Screenshots/home-business.png" width="200"/> | <img src="Screenshots/home-business-staff-leaderboard.png" width="200"/> | <img src="Screenshots/home-business-outstanding-dues.png" width="200"/> | <img src="Screenshots/pending-approvals.png" width="200"/> |
+|:---:|:---:|:---:|:---:|
+| Business home | Staff leaderboard | Outstanding dues | Pending approvals |
 
-<img src="Screenshots/subscription.png" width="230"/>
+| <img src="Screenshots/staff-management.png" width="200"/> | <img src="Screenshots/staff-dashboard.png" width="200"/> | <img src="Screenshots/staff-profile.png" width="200"/> | <img src="Screenshots/staff-reports.png" width="200"/> |
+|:---:|:---:|:---:|:---:|
+| Staff management | Staff dashboard | Staff profile | Staff reports |
+
+**Lending ledger**
+
+| <img src="Screenshots/lender-list.png" width="200"/> | <img src="Screenshots/lender-details.png" width="200"/> | <img src="Screenshots/edit-lender.png" width="200"/> |
+|:---:|:---:|:---:|
+| Lender list | Lender details | Edit lender |
 
 ---
 
